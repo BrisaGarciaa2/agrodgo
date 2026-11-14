@@ -1,6 +1,6 @@
-
 import { useState } from 'react'
 import './App.css'
+import MapaInteractivo from './pages/MapaInteractivo.jsx' // NUEVO
 
 function App() {
   const [pagina, setPagina] = useState('Inicio')
@@ -134,6 +134,10 @@ function App() {
 
               </section>
             </>
+
+          ) : pagina === 'Mapa interactivo' ? (   // NUEVO
+            <MapaInteractivo />
+
           ) : (
             <section className="empty-page">
               <div className="empty-icon">
