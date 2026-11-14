@@ -71,7 +71,6 @@ function App() {
                   <span className="welcome-label">
                     PLATAFORMA AGRÍCOLA
                   </span>
-                  <h1>Bienvenido a AGRODURANGO</h1>
                   <p>
                     Consulta y monitorea las condiciones agrícolas
                     del estado de Durango.
