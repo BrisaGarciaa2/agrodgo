@@ -60,14 +60,6 @@ function App() {
             <h3>{pagina}</h3>
             <p>Plataforma de monitoreo agrícola</p>
           </div>
-
-          <div className="user">
-            <div className="user-avatar">U</div>
-            <div>
-              <strong>Usuario</strong>
-              <span>Administrador</span>
-            </div>
-          </div>
         </header>
 
         <main className="content">
