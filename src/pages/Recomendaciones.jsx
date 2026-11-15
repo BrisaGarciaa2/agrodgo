@@ -374,7 +374,6 @@ function Recommendations({ nombre, onBack }) {
                 y condiciones meteorológicas.
               </p>
               {resumenClima && <span>{resumenClima}</span>}
-              <span>Pendiente de datos reales</span>
             </article>
 
             <article className="condition-card">
