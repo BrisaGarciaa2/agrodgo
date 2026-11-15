@@ -167,27 +167,31 @@ function Dashboard({ onSelectMunicipality, onBack }) {
       <main className="dash-content">
 
         {/* INTRODUCCIÓN */}
-        <section className="dash-intro">
+        
+<section className="dash-intro">
 
-          <div>
-            <span className="dash-label">
-              EXPLORADOR TERRITORIAL
-            </span>
+  <div className="intro-text">
+    <span className="dash-label">
+      EXPLORADOR TERRITORIAL
+    </span>
 
-            <h1>Estado de Durango</h1>
+    <h1>Descubre Durango</h1>
 
-            <p>
-              Consulta las características ambientales
-              de sus 39 municipios.
-            </p>
-          </div>
+    <p>
+      Explora los 39 municipios del estado y conoce sus
+      características ambientales. Consulta información
+      sobre el clima, los tipos de suelo y la vegetación
+      para comprender mejor el entorno natural de cada región.
+    </p>
+  </div>
 
-          <div className="municipality-count">
-            <strong>39</strong>
-            <span>Municipios</span>
-          </div>
+  <div className="municipality-count">
+    <strong>39</strong>
+    <span>Municipios por explorar</span>
+  </div>
 
-        </section>
+</section>
+
 
         {/* TARJETAS GENERALES */}
         <section className="general-cards">
