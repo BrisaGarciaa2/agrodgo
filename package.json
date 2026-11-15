@@ -10,10 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@supabase/supabase-js": "^2.119.0",
->>>>>>> 224f5e6 (Conexion a Supabase y .env.example)
     "leaflet": "^1.9.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
