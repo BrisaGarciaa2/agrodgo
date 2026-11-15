@@ -108,7 +108,7 @@
 }
 
 .municipality-eyebrow {
-  font-size: 16px;
+  font-size: 20px;
   color: #66804B;
   letter-spacing: 3px;
   font-weight: 800;
@@ -124,7 +124,7 @@
 
 .municipality-heading p {
   color: #687768;
-  font-size: 20px;
+  font-size: 35px;
   line-height: 1.7;
   max-width: 850px;
 }
@@ -181,7 +181,7 @@
 
 .environment-heading p {
   color: #6F7C6D;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.8;
   max-width: 760px;
 }
@@ -207,7 +207,7 @@
   border-radius: 999px;
   padding: 15px 28px;
   color: #193D2B;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 700;
   cursor: pointer;
   transition: 0.25s;
@@ -264,14 +264,14 @@
 
 .environment-card-heading h3 {
   margin: 0 0 8px;
-  font-size: 21px;
+  font-size: 30px;
   color: #193D2B;
   font-weight: 800;
 }
 
 .environment-card-heading p {
   color: #6F7C6D;
-  font-size: 13px;
+  font-size: 20px;
   margin: 0;
   line-height: 1.7;
 }
@@ -301,14 +301,14 @@
 
 .environment-data-item span {
   display: block;
-  font-size: 12px;
+  font-size: 20px;
   color: #6D776C;
   margin-bottom: 13px;
   font-weight: 600;
 }
 
 .environment-data-item strong {
-  font-size: 16px;
+  font-size: 25px;
   color: #193D2B;
   font-weight: 800;
   line-height: 1.5;
@@ -324,7 +324,7 @@
   background: #E4E98F;
   color: #4B5A30;
   border-radius: 17px;
-  font-size: 12px;
+  font-size: 20px;
   line-height: 1.8;
   border: 1px solid #D2D88B;
 }
@@ -347,13 +347,13 @@
 
 .municipality-next span {
   color: #66804B;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 2px;
 }
 
 .municipality-next h2 {
-  font-size: 25px;
+  font-size: 30px;
   margin: 12px 0;
   color: #193D2B;
   font-weight: 800;
@@ -361,7 +361,7 @@
 
 .municipality-next p {
   color: #687768;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.8;
   max-width: 650px;
 }
@@ -375,7 +375,7 @@
   white-space: nowrap;
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 20px;
   font-weight: 700;
   transition: 0.25s;
 }
