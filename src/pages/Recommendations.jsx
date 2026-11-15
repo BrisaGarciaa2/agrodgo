@@ -338,7 +338,7 @@ function Recommendations({ nombre, onBack }) {
 
         <div className="recommendations-brand">
           <span>M</span>
-          METEDGO
+          agroDGO
         </div>
 
         <div className="recommendations-location">
@@ -359,7 +359,7 @@ function Recommendations({ nombre, onBack }) {
             </span>
 
             <h1>
-              Sugerencias y recomendaciones
+              Sugerencias y Advertencias 
             </h1>
 
             <p>
@@ -410,213 +410,12 @@ function Recommendations({ nombre, onBack }) {
             )}
 
           </div>
-
-        </section>
-
-        {/* RESUMEN */}
-        <section className="recommendations-summary">
-
-          <div>
-            <span>Municipio analizado</span>
-            <strong>{nombre}</strong>
-          </div>
-
-          <div>
-            <span>Áreas de evaluación</span>
-            <strong>3 categorías</strong>
-          </div>
-
-          <div>
-            <span>Estado del análisis</span>
-            <strong>
-              {cargandoInfo || cargandoSuelo
-                ? 'Cargando...'
-                : hayDatos || datosSuelo
-                  ? 'Con datos reales'
-                  : 'Sin datos cargados'}
-            </strong>
-          </div>
-
-        </section>
-
-        {/* CONDICIONES AMBIENTALES */}
-        <section className="recommendations-section">
-
-          <div className="recommendations-section-title">
-            <span>01 · EVALUACIÓN</span>
-            <h2>Condiciones ambientales</h2>
-            <p>
-              Valores medidos o estimados para {nombre}.
-            </p>
-          </div>
-
-          <div className="condition-grid">
-
-            {/* CLIMA */}
-            <article className="condition-card">
-
-              <div className="condition-icon climate-icon">
-                ☀
-              </div>
-
-              <h3>Clima</h3>
-
-              <p>
-                Temperatura, humedad, precipitación
-                y condiciones meteorológicas.
-              </p>
-
-              {resumenClima && <span>{resumenClima}</span>}
-
-            </article>
-
-            {/* SUELO: DATOS REALES DE SUPABASE */}
-            <article className="condition-card">
-
-              <div className="condition-icon soil-icon">
-                ▤
-              </div>
-
-              <h3>Suelo</h3>
-
-              <p>
-                Características edafológicas, vocación
-                y superficie agrícola del municipio.
-              </p>
-
-              <div style={{ margin: '10px 0 15px' }}>
-
-                <label
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    marginRight: '8px',
-                    color: '#345C43'
-                  }}
-                >
-                  Año:
-                </label>
-
-                <select
-                  value={anio}
-                  onChange={(e) => setAnio(Number(e.target.value))}
-                  style={{
-                    padding: '7px 12px',
-                    borderRadius: '9px',
-                    border: '1px solid #C9D6BE',
-                    background: '#F3F4EA',
-                    color: '#193D2B',
-                    fontFamily: 'inherit',
-                    fontWeight: 700
-                  }}
-                >
-                  {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(y => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-
-              </div>
-
-              {cargandoSuelo ? (
-                <span>Consultando información del suelo...</span>
-              ) : datosSuelo ? (
-
-                <div style={{
-                  display: 'grid',
-                  gap: '10px',
-                  width: '100%',
-                  marginTop: '5px'
-                }}>
-
-                  <div>
-                    <span>
-                      Suelos dominantes ({anio})
-                    </span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {datosSuelo.suelos_dominantes || 'Sin dato'}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Vocación edáfica</span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {datosSuelo.vocacion_edafica || 'Sin dato'}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Ciclo agrícola dominante</span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {datosSuelo.ciclo_dominante || 'Sin dato'}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Superficie de temporal</span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {superficieTemporal}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Superficie de riego</span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {superficieRiego}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Superficie total</span>
-                    <strong style={{ display: 'block', marginTop: '5px' }}>
-                      {superficieTotal}
-                    </strong>
-                  </div>
-
-                </div>
-
-              ) : (
-
-                <span>
-                  No hay datos de suelo registrados para {nombre} en {anio}.
-                </span>
-
-              )}
-
-            </article>
-
-            {/* CULTIVOS */}
-            <article className="condition-card">
-
-              <div className="condition-icon vegetation-icon">
-                ♧
-              </div>
-
-              <h3>Vegetación</h3>
-
-              <p>
-                Cultivos recomendados por estación, rendimiento
-                y éxito de cosecha.
-              </p>
-
-              <span>
-                {mejorCultivo
-                  ? `${cultivos.length} cultivos registrados · mejor: ${mejorCultivo.cultivo_recomendado}`
-                  : 'Pendiente de datos reales'}
-              </span>
-
-            </article>
-
-          </div>
-
         </section>
 
         {/* RECOMENDACIONES */}
         <section className="recommendations-section">
 
           <div className="recommendations-section-title">
-            <span>02 · ORIENTACIÓN AMBIENTAL</span>
             <h2>Sugerencias y recomendaciones</h2>
             <p>
               Acciones sugeridas a partir de los datos del municipio.
@@ -691,7 +490,7 @@ function Recommendations({ nombre, onBack }) {
         <section className="warnings-section">
 
           <div className="warnings-heading">
-            <span>03 · PREVENCIÓN</span>
+
             <h2>Advertencias ambientales</h2>
             <p>
               Aspectos que deben monitorearse para identificar
@@ -754,9 +553,6 @@ function Recommendations({ nombre, onBack }) {
 
       </main>
 
-      <footer className="recommendations-footer">
-        METEDGO · EXPLORACIÓN AMBIENTAL DE DURANGO
-      </footer>
 
     </div>
   )

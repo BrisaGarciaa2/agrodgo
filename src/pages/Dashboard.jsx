@@ -267,7 +267,7 @@ function Dashboard({ onSelectMunicipality, onBack }) {
           </button>
 
           <div>
-            <h2>meteDGO</h2>
+            <h2>agroDGO</h2>
             <span>Explorador ambiental de Durango</span>
           </div>
 
