@@ -8,10 +8,12 @@ import {
   useMap
 } from 'react-leaflet'
 
-import { supabase } from '../supabaseClient'// VEGETACIÓN: AJUSTA esta ruta a tu proyecto
+import { supabase } from '../supabaseClient'
 
 import 'leaflet/dist/leaflet.css'
 import './Recommendations.css'
+
+const ICONOS = { Clima: '☀', Suelo: '▤', Vegetación: '♧' }
 
 // VEGETACIÓN: orden de las estaciones de la tabla cultivos
 const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
@@ -47,6 +49,10 @@ function Recommendations({ nombre, onBack }) {
   const [feature, setFeature] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(false)
+
+  // Datos reales y reglas activas del municipio
+  const [info, setInfo] = useState(null)
+  const [cargandoInfo, setCargandoInfo] = useState(true)
 
   // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
   const [cultivos, setCultivos] = useState([])
@@ -95,6 +101,37 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+  // Obtener datos ambientales y recomendaciones desde Supabase
+  useEffect(() => {
+    let activo = true
+
+    async function cargarInfo() {
+      try {
+        setCargandoInfo(true)
+
+        const { data, error: err } = await supabase.rpc(
+          'recomendaciones_municipio',
+          { p_nombre: nombre }
+        )
+
+        if (err) throw err
+        if (activo) setInfo(data)
+
+      } catch (err) {
+        console.error('Error cargando recomendaciones:', err)
+        if (activo) setInfo(null)
+      } finally {
+        if (activo) setCargandoInfo(false)
+      }
+    }
+
+    if (nombre) cargarInfo()
+
+    return () => {
+      activo = false
+    }
+  }, [nombre])
+
   // VEGETACIÓN: cargar los cultivos del municipio desde Supabase
   useEffect(() => {
     if (!nombre) return
@@ -128,6 +165,10 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+  const datos = info?.datos || {}
+  const reglas = info?.reglas || []
+  const hayDatos = Object.keys(datos).length > 0
+
   // VEGETACIÓN: cultivo recomendado por estación y el de mayor éxito de cosecha
   const mejorCultivo = cultivos.reduce(
     (mejor, c) =>
@@ -147,17 +188,8 @@ function Recommendations({ nombre, onBack }) {
     .filter(Boolean)
     .join(' · ')
 
-  // Información demostrativa, pendiente de conectar a datos reales
-  const recomendaciones = [
-    {
-      categoria: 'Clima',
-      icono: '☀',
-      titulo: 'Monitoreo de condiciones climáticas',
-      descripcion:
-        'Consulta periódicamente la temperatura, humedad y precipitación del municipio.',
-      tipo: 'Sugerencia',
-      nivel: 'Informativo'
-    },
+  // Recomendaciones generales (siempre visibles, no dependen de datos)
+  const recomendacionesGenerales = [
     {
       categoria: 'Suelo',
       icono: '▤',
@@ -181,6 +213,29 @@ function Recommendations({ nombre, onBack }) {
         : 'Sin datos'
     }
   ]
+
+  const recomendaciones = reglas.filter(r => r.tipo !== 'Advertencia')
+  const advertencias = reglas.filter(r => r.tipo === 'Advertencia')
+
+  // Texto de un indicador: "16.6 °C" o null si no hay dato
+  const dato = (indicador) => {
+    const d = datos[indicador]
+    return d ? `${d.valor} ${d.unidad}` : null
+  }
+
+  // Línea de valores para cada tarjeta de condiciones
+  const resumenClima = [
+    dato('temp_media_anual') && `Temp. media: ${dato('temp_media_anual')}`,
+    dato('precip_anual') && `Lluvia: ${dato('precip_anual')}`
+  ].filter(Boolean).join(' · ')
+
+  const resumenSuelo = [
+    dato('humedad_suelo') && `Humedad: ${dato('humedad_suelo')}`,
+    dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
+  ].filter(Boolean).join(' · ')
+
+  // Fuentes de datos usadas (sin repetir)
+  const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
 
   return (
     <div className="recommendations-page">
@@ -287,7 +342,13 @@ function Recommendations({ nombre, onBack }) {
 
           <div>
             <span>Estado del análisis</span>
-            <strong>En integración</strong>
+            <strong>
+              {cargandoInfo
+                ? 'Cargando...'
+                : hayDatos
+                  ? 'Con datos reales'
+                  : 'Sin datos cargados'}
+            </strong>
           </div>
 
         </section>
@@ -299,8 +360,7 @@ function Recommendations({ nombre, onBack }) {
             <span>01 · EVALUACIÓN</span>
             <h2>Condiciones ambientales</h2>
             <p>
-              Áreas que deben considerarse para el análisis
-              del municipio.
+              Valores medidos o estimados para {nombre}.
             </p>
           </div>
 
@@ -313,6 +373,7 @@ function Recommendations({ nombre, onBack }) {
                 Temperatura, humedad, precipitación
                 y condiciones meteorológicas.
               </p>
+              {resumenClima && <span>{resumenClima}</span>}
               <span>Pendiente de datos reales</span>
             </article>
 
@@ -323,6 +384,7 @@ function Recommendations({ nombre, onBack }) {
                 Tipo de suelo, textura, propiedades
                 y características edafológicas.
               </p>
+              {resumenSuelo && <span>{resumenSuelo}</span>}
               <span>Pendiente de datos reales</span>
             </article>
 
@@ -352,8 +414,7 @@ function Recommendations({ nombre, onBack }) {
             <span>02 · ORIENTACIÓN AMBIENTAL</span>
             <h2>Sugerencias y recomendaciones</h2>
             <p>
-              Acciones generales para apoyar el seguimiento
-              de las condiciones ambientales.
+              Acciones sugeridas a partir de los datos del municipio.
             </p>
           </div>
 
@@ -364,6 +425,35 @@ function Recommendations({ nombre, onBack }) {
               <article
                 className="recommendation-item"
                 key={index}
+              >
+
+                <div className="recommendation-item-icon">
+                  {ICONOS[item.categoria]}
+                </div>
+
+                <div className="recommendation-item-content">
+
+                  <span>{item.categoria} · {item.tipo}</span>
+
+                  <h3>{item.titulo}</h3>
+
+                  <p>{item.descripcion}</p>
+
+                </div>
+
+                <span className="recommendation-status">
+                  {item.nivel}
+                </span>
+
+              </article>
+
+            ))}
+
+            {recomendacionesGenerales.map((item, index) => (
+
+              <article
+                className="recommendation-item"
+                key={`general-${index}`}
               >
 
                 <div className="recommendation-item-icon">
@@ -404,27 +494,53 @@ function Recommendations({ nombre, onBack }) {
             </p>
           </div>
 
-          <div className="warning-card">
+          {advertencias.map((item, index) => (
 
-            <div className="warning-symbol">!</div>
+            <div className="warning-card" key={index}>
 
-            <div>
-              <h3>Información de alertas no disponible</h3>
+              <div className="warning-symbol">!</div>
 
-              <p>
-                Aún no se cuenta con datos meteorológicos
-                y ambientales conectados para determinar
-                riesgos específicos en {nombre}.
-              </p>
+              <div>
+                <h3>{item.titulo}</h3>
+                <p>{item.descripcion}</p>
+              </div>
+
+              <span>{item.nivel}</span>
+
             </div>
 
-            <span>Sin evaluar</span>
+          ))}
 
-          </div>
+          {!cargandoInfo && advertencias.length === 0 && (
+
+            <div className="warning-card">
+
+              <div className="warning-symbol">!</div>
+
+              <div>
+                <h3>
+                  {hayDatos
+                    ? 'Sin advertencias con los datos actuales'
+                    : 'Información de alertas no disponible'}
+                </h3>
+
+                <p>
+                  {hayDatos
+                    ? `Con los datos disponibles no se detectan riesgos específicos en ${nombre}.`
+                    : `Aún no hay datos ambientales cargados para determinar riesgos en ${nombre}.`}
+                </p>
+              </div>
+
+              <span>{hayDatos ? 'Sin alertas' : 'Sin evaluar'}</span>
+
+            </div>
+
+          )}
 
           <div className="warning-note">
-            Las advertencias se habilitarán cuando se integren
-            las fuentes de datos ambientales correspondientes.
+            {hayDatos
+              ? `Fuentes: ${fuentes.join('; ')}. Las recomendaciones usan umbrales generales y son orientativas: valídalas con un especialista local.`
+              : 'Las advertencias se habilitarán cuando haya datos ambientales cargados.'}
           </div>
 
         </section>
