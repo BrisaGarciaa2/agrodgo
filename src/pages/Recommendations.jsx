@@ -15,10 +15,17 @@ import './Recommendations.css'
 
 const ICONOS = { Clima: '☀', Suelo: '▤', Vegetación: '♧' }
 
+<<<<<<< HEAD
 // VEGETACIÓN: orden de las estaciones de la tabla cultivos
 const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
 
 // VEGETACIÓN: normaliza nombres (sin acentos, minúsculas)
+=======
+// Orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// Normaliza nombres (sin acentos, minúsculas)
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
 const normalizar = (texto) =>
   (texto || '')
     .normalize('NFD')
@@ -54,8 +61,14 @@ function Recommendations({ nombre, onBack }) {
   const [info, setInfo] = useState(null)
   const [cargandoInfo, setCargandoInfo] = useState(true)
 
+<<<<<<< HEAD
   // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
   const [cultivos, setCultivos] = useState([])
+=======
+  // Cultivos recomendados del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
+  const [cargandoCultivos, setCargandoCultivos] = useState(true)
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
 
   // Obtener el contorno geográfico del municipio
   useEffect(() => {
@@ -132,6 +145,7 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+<<<<<<< HEAD
   // VEGETACIÓN: cargar los cultivos del municipio desde Supabase
   useEffect(() => {
     if (!nombre) return
@@ -159,6 +173,39 @@ function Recommendations({ nombre, onBack }) {
     }
 
     cargarCultivos()
+=======
+  // Obtener los cultivos recomendados desde la tabla "cultivos"
+  useEffect(() => {
+    let activo = true
+
+    async function cargarCultivos() {
+      try {
+        setCargandoCultivos(true)
+
+        const { data, error: err } = await supabase
+          .from('cultivos')
+          .select('*')
+
+        if (err) throw err
+
+        if (activo) {
+          setCultivos(
+            (data || []).filter(
+              c => normalizar(c.municipio) === normalizar(nombre)
+            )
+          )
+        }
+
+      } catch (err) {
+        console.error('Error cargando cultivos:', err)
+        if (activo) setCultivos([])
+      } finally {
+        if (activo) setCargandoCultivos(false)
+      }
+    }
+
+    if (nombre) cargarCultivos()
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
 
     return () => {
       activo = false
@@ -169,7 +216,11 @@ function Recommendations({ nombre, onBack }) {
   const reglas = info?.reglas || []
   const hayDatos = Object.keys(datos).length > 0
 
+<<<<<<< HEAD
   // VEGETACIÓN: cultivo recomendado por estación y el de mayor éxito de cosecha
+=======
+  // Cultivo de mayor éxito de cosecha
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
   const mejorCultivo = cultivos.reduce(
     (mejor, c) =>
       !mejor || Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
@@ -178,12 +229,22 @@ function Recommendations({ nombre, onBack }) {
     null
   )
 
+<<<<<<< HEAD
+=======
+  // Un cultivo por estación: "Primavera-Verano: Frijol · Otoño-Invierno: ..."
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
   const resumenCultivos = ORDEN_ESTACIONES
     .map(estacion => {
       const c = cultivos.find(
         x => normalizar(x.estacion) === normalizar(estacion)
       )
+<<<<<<< HEAD
       return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+=======
+      return c
+        ? `${estacion}: ${c.cultivo_recomendado} (${Number(c.exito_cosecha_pct).toFixed(1)}%)`
+        : null
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
     })
     .filter(Boolean)
     .join(' · ')
@@ -204,12 +265,23 @@ function Recommendations({ nombre, onBack }) {
       categoria: 'Vegetación',
       icono: '♧',
       titulo: 'Cultivos recomendados por estación',
+<<<<<<< HEAD
       descripcion: mejorCultivo
         ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}) con ${mejorCultivo.exito_cosecha_pct}%.`
         : 'Aún no hay cultivos cargados para este municipio.',
       tipo: 'Recomendación',
       nivel: mejorCultivo
         ? `${mejorCultivo.exito_cosecha_pct}% de éxito`
+=======
+      descripcion: cargandoCultivos
+        ? 'Cargando cultivos...'
+        : mejorCultivo
+          ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}).`
+          : `Aún no hay cultivos cargados para ${nombre}.`,
+      tipo: 'Recomendación',
+      nivel: mejorCultivo
+        ? `${Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}% de éxito`
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
         : 'Sin datos'
     }
   ]
@@ -234,6 +306,10 @@ function Recommendations({ nombre, onBack }) {
     dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
   ].filter(Boolean).join(' · ')
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
   // Fuentes de datos usadas (sin repetir)
   const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
 
@@ -366,6 +442,7 @@ function Recommendations({ nombre, onBack }) {
               <div className="condition-icon vegetation-icon">♧</div>
               <h3>Vegetación</h3>
               <p>
+<<<<<<< HEAD
                 Cultivos recomendados por estación, rendimiento
                 y éxito de cosecha.
               </p>
@@ -374,6 +451,33 @@ function Recommendations({ nombre, onBack }) {
                   ? `${cultivos.length} cultivos registrados · mejor: ${mejorCultivo.cultivo_recomendado}`
                   : 'Pendiente de datos reales'}
               </span>
+=======
+                Cultivos recomendados por estación
+                y su éxito de cosecha.
+              </p>
+              {mejorCultivo ? (
+                <>
+                  <span>
+                    {ORDEN_ESTACIONES
+                      .map(estacion => {
+                        const c = cultivos.find(
+                          x => normalizar(x.estacion) === normalizar(estacion)
+                        )
+                        return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+                      })
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                  <span>
+                    Mayor éxito: {mejorCultivo.cultivo_recomendado} ({Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}%)
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {cargandoCultivos ? 'Cargando...' : 'Pendiente de datos reales'}
+                </span>
+              )}
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
             </article>
 
           </div>
