@@ -117,7 +117,7 @@
 
 .recommendations-eyebrow {
   color: #66804B;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 2.5px;
 }
@@ -134,7 +134,7 @@
 
 .recommendations-title p {
   color: #687768;
-  font-size: 17px;
+  font-size: 25px;
   line-height: 1.8;
   max-width: 650px;
   margin: 0 0 15px;
@@ -142,7 +142,7 @@
 
 .recommendations-title h2 {
   color: #345C43;
-  font-size: 27px;
+  font-size: 35px;
   font-weight: 800;
   margin: 0;
 }
@@ -407,7 +407,7 @@
 .recommendation-item-content > span {
   display: block;
   color: #536C42;
-  font-size: 12px;
+  font-size: 25px;
   font-weight: 800;
   letter-spacing: 1px;
   margin-bottom: 11px;
@@ -415,7 +415,7 @@
 
 .recommendation-item-content h3 {
   color: #193D2B;
-  font-size: 19px;
+  font-size: 25px;
   font-weight: 800;
   line-height: 1.4;
   margin: 0 0 12px;
@@ -423,7 +423,7 @@
 
 .recommendation-item-content p {
   color: #536750;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.8;
   margin: 0;
   overflow-wrap: anywhere;
@@ -502,7 +502,7 @@
 
 .warning-card h3 {
   color: #62451D;
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 800;
   line-height: 1.4;
   margin: 0 0 12px;
@@ -510,7 +510,7 @@
 
 .warning-card p {
   color: #745C3E;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.8;
   margin: 0;
   overflow-wrap: anywhere;
