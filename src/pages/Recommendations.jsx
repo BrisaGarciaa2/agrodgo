@@ -15,6 +15,17 @@ import './Recommendations.css'
 
 const ICONOS = { Clima: '☀', Suelo: '▤', Vegetación: '♧' }
 
+// Orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// Normaliza nombres (sin acentos, minúsculas)
+const normalizar = (texto) =>
+  (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
 // Mapa pequeño del municipio seleccionado
 function AjustarMapa({ feature }) {
   const map = useMap()
@@ -42,6 +53,10 @@ function Recommendations({ nombre, onBack }) {
   // Datos reales y reglas activas del municipio
   const [info, setInfo] = useState(null)
   const [cargandoInfo, setCargandoInfo] = useState(true)
+
+  // Cultivos recomendados del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
+  const [cargandoCultivos, setCargandoCultivos] = useState(true)
 
   // Obtener el contorno geográfico del municipio
   useEffect(() => {
@@ -118,9 +133,68 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+  // Obtener los cultivos recomendados desde la tabla "cultivos"
+  useEffect(() => {
+    let activo = true
+
+    async function cargarCultivos() {
+      try {
+        setCargandoCultivos(true)
+
+        const { data, error: err } = await supabase
+          .from('cultivos')
+          .select('*')
+
+        if (err) throw err
+
+        if (activo) {
+          setCultivos(
+            (data || []).filter(
+              c => normalizar(c.municipio) === normalizar(nombre)
+            )
+          )
+        }
+
+      } catch (err) {
+        console.error('Error cargando cultivos:', err)
+        if (activo) setCultivos([])
+      } finally {
+        if (activo) setCargandoCultivos(false)
+      }
+    }
+
+    if (nombre) cargarCultivos()
+
+    return () => {
+      activo = false
+    }
+  }, [nombre])
+
   const datos = info?.datos || {}
   const reglas = info?.reglas || []
   const hayDatos = Object.keys(datos).length > 0
+
+  // Cultivo de mayor éxito de cosecha
+  const mejorCultivo = cultivos.reduce(
+    (mejor, c) =>
+      !mejor || Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+        ? c
+        : mejor,
+    null
+  )
+
+  // Un cultivo por estación: "Primavera-Verano: Frijol · Otoño-Invierno: ..."
+  const resumenCultivos = ORDEN_ESTACIONES
+    .map(estacion => {
+      const c = cultivos.find(
+        x => normalizar(x.estacion) === normalizar(estacion)
+      )
+      return c
+        ? `${estacion}: ${c.cultivo_recomendado} (${Number(c.exito_cosecha_pct).toFixed(1)}%)`
+        : null
+    })
+    .filter(Boolean)
+    .join(' · ')
 
   // Recomendaciones generales (siempre visibles, no dependen de datos)
   const recomendacionesGenerales = [
@@ -136,11 +210,16 @@ function Recommendations({ nombre, onBack }) {
     {
       categoria: 'Vegetación',
       icono: '♧',
-      titulo: 'Seguimiento de la cobertura vegetal',
-      descripcion:
-        'Monitorea los cambios en la cobertura vegetal y las condiciones de conservación del territorio.',
+      titulo: 'Cultivos recomendados por estación',
+      descripcion: cargandoCultivos
+        ? 'Cargando cultivos...'
+        : mejorCultivo
+          ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}).`
+          : `Aún no hay cultivos cargados para ${nombre}.`,
       tipo: 'Recomendación',
-      nivel: 'Preventivo'
+      nivel: mejorCultivo
+        ? `${Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}% de éxito`
+        : 'Sin datos'
     }
   ]
 
@@ -164,7 +243,6 @@ function Recommendations({ nombre, onBack }) {
     dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
   ].filter(Boolean).join(' · ')
 
-  const resumenVegetacion = dato('ndvi') ? `NDVI: ${datos.ndvi.valor}` : ''
 
   // Fuentes de datos usadas (sin repetir)
   const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
@@ -324,11 +402,31 @@ function Recommendations({ nombre, onBack }) {
               <div className="condition-icon vegetation-icon">♧</div>
               <h3>Vegetación</h3>
               <p>
-                Cobertura vegetal, ecosistemas
-                y distribución de la vegetación.
+                Cultivos recomendados por estación
+                y su éxito de cosecha.
               </p>
-              {resumenVegetacion && <span>{resumenVegetacion}</span>}
-              <span>Pendiente de datos reales</span>
+              {mejorCultivo ? (
+                <>
+                  <span>
+                    {ORDEN_ESTACIONES
+                      .map(estacion => {
+                        const c = cultivos.find(
+                          x => normalizar(x.estacion) === normalizar(estacion)
+                        )
+                        return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+                      })
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                  <span>
+                    Mayor éxito: {mejorCultivo.cultivo_recomendado} ({Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}%)
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {cargandoCultivos ? 'Cargando...' : 'Pendiente de datos reales'}
+                </span>
+              )}
             </article>
 
           </div>
