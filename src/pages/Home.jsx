@@ -1,16 +1,46 @@
 
+import { useState, useRef } from 'react'
 import './Home.css'
 
 function Home({ onExplore }) {
+  const homeRef = useRef(null)
+
+  const [position, setPosition] = useState({
+    x: 0,
+    y: 0
+  })
+
+  const handleMouseMove = (e) => {
+    const rect = homeRef.current.getBoundingClientRect()
+
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+
+    setPosition({ x, y })
+  }
+
+  const handleMouseLeave = () => {
+    setPosition({ x: 0, y: 0 })
+  }
+
   return (
-    <main className="home-screen">
+    <main
+      className="home-screen"
+      ref={homeRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        '--move-x': `${position.x * -25}px`,
+        '--move-y': `${position.y * -25}px`
+      }}
+    >
 
       <div className="home-overlay"></div>
 
       <header className="home-top">
         <div className="home-brand">
           <span className="brand-symbol">M</span>
-          <span>METEDGO</span>
+          <span>meteDGO</span>
         </div>
 
         <span className="home-location">
@@ -24,7 +54,7 @@ function Home({ onExplore }) {
           EXPLORACIÓN TERRITORIAL Y AMBIENTAL
         </span>
 
-        <h1>METEDGO</h1>
+        <h1>meteDGO</h1>
 
         <div className="home-line"></div>
 
@@ -40,19 +70,15 @@ function Home({ onExplore }) {
           mediante información geográfica.
         </p>
 
-        <button className="explore-button"
-          onClick={onExplore} 
+        <button
+          className="explore-button"
+          onClick={onExplore}
         >
           Explorar Durango
           <span>→</span>
         </button>
 
       </section>
-
-      <footer className="home-footer">
-        <span>METEDGO · INFORMACIÓN TERRITORIAL</span>
-        <span>ESTADO DE DURANGO</span>
-      </footer>
 
     </main>
   )
