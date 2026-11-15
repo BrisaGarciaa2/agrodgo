@@ -1,4 +1,3 @@
-
 /* ==========================================
    METEDGO - DASHBOARD
    Diseño ambiental moderno
@@ -8,7 +7,7 @@
 
 .dashboard {
   min-height: 100vh;
-  background:#193D2B; 
+  background: #193D2B;
   color: #dbddc8;
   font-family: 'DM Sans', sans-serif;
 }
@@ -102,7 +101,7 @@
 
 .dash-label {
   display: inline-block;
-  color:#E4E98F;
+  color: #E4E98F;
   background: transparent;
   padding: 0;
   border: none;
@@ -135,7 +134,7 @@
 .intro-features span {
   background: transparent;
   border: none;
-  color:#E4E98F;
+  color: #E4E98F;
   padding: 0;
   border-radius: 0;
   font-size: 25px;
@@ -496,4 +495,41 @@
     flex: 1;
     padding: 11px 10px;
   }
+}
+
+/* Pega esto al final de tu Dashboard.css */
+
+.legend-item .legend-range {
+  margin-left: auto;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.muni-rows {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.muni-rows li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.muni-emoji {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.muni-rank {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #E4EA8C;
+  color: #163A24;
+  font-size: 14px;
 }
