@@ -1,5 +1,4 @@
-﻿
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import L from 'leaflet'
 import {
   MapContainer,
@@ -38,8 +37,9 @@ const informacion = {
 
   Vegetación: {
     icono: '♧',
-    titulo: 'Cobertura vegetal',
-    descripcion: 'Consulta los tipos de vegetación presentes en el municipio.',
+    // VEGETACIÓN: textos adaptados a la tabla cultivos
+    titulo: 'Cultivos recomendados',
+    descripcion: 'Consulta los cultivos recomendados por estación para el municipio.',
     color: '#83A779',
     columna: 'vegetacion',
     paleta: ['#D5E2C0', '#A6C18A', '#6D956B', '#3F704C']
@@ -59,12 +59,8 @@ const GRUPO_SUELO = {
   4: 'Arcillosos, calcáreos, salinos, aluviales o arenosos'
 }
 
-const GRUPO_VEGETACION = {
-  1: 'Matorral',
-  2: 'Pastizal o mezquital',
-  3: 'Selva',
-  4: 'Bosque'
-}
+// VEGETACIÓN: orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
 
 // ==========================================
 // FUNCIONES AUXILIARES
@@ -72,6 +68,27 @@ const GRUPO_VEGETACION = {
 
 const mayus = (texto) =>
   texto ? texto.charAt(0).toUpperCase() + texto.slice(1) : texto
+
+// VEGETACIÓN: normaliza nombres (sin acentos, minúsculas)
+const normalizar = (texto) =>
+  (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+// VEGETACIÓN: números con separador de miles
+const formatoNum = (n) => Number(n).toLocaleString('es-MX')
+
+// VEGETACIÓN: cultivo con mayor éxito de cosecha
+const mejorCultivo = (filas) =>
+  filas.reduce(
+    (mejor, f) =>
+      !mejor || Number(f.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+        ? f
+        : mejor,
+    null
+  )
 
 function extraerPrincipal(texto) {
   const m = texto?.match(/(?:^|: )([^:]+?) \(([\d.]+)% del municipio\)/)
@@ -119,7 +136,8 @@ function humedadDe(clima = '') {
 // CONSTRUIR DATOS DE SUPABASE
 // ==========================================
 
-function construirDatos(categoria, fila) {
+// VEGETACIÓN: tercer parámetro opcional "cultivos" (solo lo usa Vegetación)
+function construirDatos(categoria, fila, cultivos = []) {
   if (categoria === 'Clima') {
     const clima = extraerPrincipal(fila?.descripcion_clima)
     const rangos = extraerTempPrecip(fila?.descripcion_clima)
@@ -165,20 +183,30 @@ function construirDatos(categoria, fila) {
     ]
   }
 
-  const veg = extraerPrincipal(fila?.descripcion_vegetacion)
+  // VEGETACIÓN: un dato por estación + el de mayor éxito de cosecha
+  const porEstacion = ORDEN_ESTACIONES.map(estacion => {
+    const c = cultivos.find(
+      x => normalizar(x.estacion) === normalizar(estacion)
+    )
+
+    return {
+      nombre: `Cultivo recomendado · ${estacion}`,
+      valor: c ? c.cultivo_recomendado : SIN_DATO,
+      detalle: c
+        ? `Éxito de cosecha ${c.exito_cosecha_pct}% · Rendimiento ${c.rendimiento_prom} · Volumen ${formatoNum(c.volumen_promedio_ton)} ton · Valor $${formatoNum(c.valor_promedio_mxn)} MXN · ${c.anios_evaluados} años evaluados`
+        : null
+    }
+  })
+
+  const mejor = cultivos.length ? mejorCultivo(cultivos) : null
 
   return [
+    ...porEstacion,
     {
-      nombre: 'Vegetación predominante',
-      valor: veg ? veg.nombre : SIN_DATO
-    },
-    {
-      nombre: 'Superficie que ocupa',
-      valor: veg ? `${veg.pct}% del municipio` : SIN_DATO
-    },
-    {
-      nombre: 'Grupo de cobertura',
-      valor: GRUPO_VEGETACION[fila?.vegetacion] ?? SIN_DATO
+      nombre: 'Mayor éxito de cosecha',
+      valor: mejor
+        ? `${mejor.cultivo_recomendado} (${mejor.estacion}) · ${mejor.exito_cosecha_pct}%`
+        : SIN_DATO
     }
   ]
 }
@@ -220,6 +248,10 @@ function Municipality({ nombre, onBack, onRecommendations }) {
   // Datos ambientales de Supabase
   const [fila, setFila] = useState(null)
   const [cargandoDatos, setCargandoDatos] = useState(true)
+
+  // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
+  const [cargandoCultivos, setCargandoCultivos] = useState(true)
 
   // ==========================================
   // VOLVER AL INICIO DE LA PANTALLA
@@ -329,19 +361,82 @@ function Municipality({ nombre, onBack, onRecommendations }) {
   }, [feature])
 
   // ==========================================
+  // VEGETACIÓN: CARGAR CULTIVOS DESDE SUPABASE
+  // ==========================================
+
+  useEffect(() => {
+    if (!nombre) return
+
+    let activo = true
+
+    async function cargarCultivos() {
+      setCargandoCultivos(true)
+
+      const { data, error: errorDb } = await supabase
+        .from('cultivos')
+        .select(
+          'id, municipio, estacion, cultivo_recomendado, anios_evaluados, volumen_promedio_ton, rendimiento_prom, valor_promedio_mxn, exito_cosecha_pct'
+        )
+
+      if (!activo) return
+
+      if (errorDb) {
+        console.error('Error leyendo cultivos:', errorDb)
+      }
+
+      // Filtra por municipio ignorando acentos y mayúsculas
+      setCultivos(
+        (data ?? []).filter(
+          c => normalizar(c.municipio) === normalizar(nombre)
+        )
+      )
+      setCargandoCultivos(false)
+    }
+
+    cargarCultivos()
+
+    return () => {
+      activo = false
+    }
+  }, [nombre])
+
+  // ==========================================
   // DATOS DE LA CATEGORÍA SELECCIONADA
   // ==========================================
 
   const actual = informacion[categoria]
 
-  const nivel = fila?.[actual.columna]
+  // VEGETACIÓN: nivel de color según el mayor éxito de cosecha (1 a 4)
+  // Clima y Suelo siguen usando fila?.[actual.columna] como antes
+  const nivel =
+    categoria === 'Vegetación'
+      ? cultivos.length
+        ? Math.min(
+            4,
+            Math.max(
+              1,
+              Math.ceil(Number(mejorCultivo(cultivos).exito_cosecha_pct) / 25)
+            )
+          )
+        : null
+      : fila?.[actual.columna]
 
-  const datos = cargandoDatos
-    ? construirDatos(categoria, null).map(d => ({
-        ...d,
-        valor: 'Cargando...'
-      }))
-    : construirDatos(categoria, fila)
+  const datos =
+    categoria === 'Vegetación'
+      ? // VEGETACIÓN: datos desde la tabla cultivos
+        cargandoCultivos
+        ? construirDatos(categoria, null, []).map(d => ({
+            ...d,
+            valor: 'Cargando...',
+            detalle: null
+          }))
+        : construirDatos(categoria, null, cultivos)
+      : cargandoDatos
+        ? construirDatos(categoria, null).map(d => ({
+            ...d,
+            valor: 'Cargando...'
+          }))
+        : construirDatos(categoria, fila)
 
   // ==========================================
   // DISEÑO DE LA PANTALLA
@@ -364,8 +459,8 @@ function Municipality({ nombre, onBack, onRecommendations }) {
         </button>
 
         <div className="municipality-brand">
-          <span>M</span>
-          METEDGO
+          <span>A</span>
+          agroDGO
         </div>
 
         <div className="municipality-location">
@@ -543,6 +638,9 @@ function Municipality({ nombre, onBack, onRecommendations }) {
                 >
                   <span>{dato.nombre}</span>
                   <strong>{dato.valor}</strong>
+
+                  {/* VEGETACIÓN: detalle del cultivo (solo existe en esta categoría) */}
+                  {dato.detalle && <small>{dato.detalle}</small>}
                 </article>
 
               ))}
@@ -553,11 +651,18 @@ function Municipality({ nombre, onBack, onRecommendations }) {
 
             <div className="environment-notice">
 
-              {fila
-                ? `Fuente: ${fila.fuente ?? 'INEGI'}. Se muestra el elemento que predomina en el municipio.`
-                : cargandoDatos
-                  ? 'Consultando la base de datos...'
-                  : 'Este municipio todavía no tiene datos ambientales cargados.'}
+              {categoria === 'Vegetación'
+                ? // VEGETACIÓN: aviso propio de la tabla cultivos
+                  cultivos.length
+                  ? 'Fuente: tabla de cultivos. Se muestra el cultivo recomendado por estación y el de mayor éxito de cosecha.'
+                  : cargandoCultivos
+                    ? 'Consultando la base de datos...'
+                    : 'Este municipio todavía no tiene cultivos cargados.'
+                : fila
+                  ? `Fuente: NASA e INEGI. Se muestra el elemento que predomina en el municipio.`
+                  : cargandoDatos
+                    ? 'Consultando la base de datos...'
+                    : 'Este municipio todavía no tiene datos ambientales cargados.'}
 
             </div>
 

@@ -135,6 +135,14 @@ function Dashboard({ onSelectMunicipality, onBack }) {
         console.log('Capas recibidas:', Object.keys(data || {}).length, errCapas)
 
         if (errCapas) throw errCapas
+
+        // --- DIAGNÓSTICO (puedes borrar estas líneas cuando todo funcione) ---
+        console.log('NDVI Durango:', data?.['Durango']?.ndvi)
+        console.log('Suelo Durango:', data?.['Durango']?.humedad_suelo)
+        console.log('Municipios con NDVI:',
+          Object.keys(data || {}).filter(n => data[n]?.ndvi?.valor != null).length)
+        // ---------------------------------------------------------------------
+
         setDatosCapas(data || {})
 
       } catch (err) {
@@ -165,9 +173,11 @@ function Dashboard({ onSelectMunicipality, onBack }) {
 
   const valorDe = (nombre) => datosCapas[nombre]?.[config.indicador]?.valor
 
+  // CORREGIDO: ignora valores vacíos (null/undefined) y no numéricos
   const valores = Object.keys(datosCapas)
-    .map(n => Number(valorDe(n)))
-    .filter(v => !isNaN(v) && valorDe !== undefined)
+    .map(n => valorDe(n))
+    .filter(v => v != null && !isNaN(Number(v)))
+    .map(Number)
 
   const hayDatos = valores.length > 0
   const min = hayDatos ? Math.min(...valores) : 0
@@ -436,7 +446,7 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                     <div className="legend-item" key={color}>
                       <span style={{ background: color }}></span>
                       {hayDatos
-                        ? `${desde.toFixed(1)} – ${hasta.toFixed(1)}`
+                        ? `${desde.toFixed(2)} – ${hasta.toFixed(2)}`
                         : `Nivel ${index + 1}`}
                     </div>
                   )

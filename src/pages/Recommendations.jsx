@@ -15,6 +15,24 @@ import './Recommendations.css'
 
 const ICONOS = { Clima: '☀', Suelo: '▤', Vegetación: '♧' }
 
+<<<<<<< HEAD
+// VEGETACIÓN: orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// VEGETACIÓN: normaliza nombres (sin acentos, minúsculas)
+=======
+// Orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// Normaliza nombres (sin acentos, minúsculas)
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+const normalizar = (texto) =>
+  (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
 // Mapa pequeño del municipio seleccionado
 function AjustarMapa({ feature }) {
   const map = useMap()
@@ -42,6 +60,15 @@ function Recommendations({ nombre, onBack }) {
   // Datos reales y reglas activas del municipio
   const [info, setInfo] = useState(null)
   const [cargandoInfo, setCargandoInfo] = useState(true)
+
+<<<<<<< HEAD
+  // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
+=======
+  // Cultivos recomendados del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
+  const [cargandoCultivos, setCargandoCultivos] = useState(true)
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
 
   // Obtener el contorno geográfico del municipio
   useEffect(() => {
@@ -118,30 +145,146 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+<<<<<<< HEAD
+  // VEGETACIÓN: cargar los cultivos del municipio desde Supabase
+  useEffect(() => {
+    if (!nombre) return
+
+    let activo = true
+
+    async function cargarCultivos() {
+      const { data, error: errorDb } = await supabase
+        .from('cultivos')
+        .select(
+          'id, municipio, estacion, cultivo_recomendado, anios_evaluados, volumen_promedio_ton, rendimiento_prom, valor_promedio_mxn, exito_cosecha_pct'
+        )
+
+      if (!activo) return
+
+      if (errorDb) {
+        console.error('Error leyendo cultivos:', errorDb)
+      }
+
+      setCultivos(
+        (data ?? []).filter(
+          c => normalizar(c.municipio) === normalizar(nombre)
+        )
+      )
+    }
+
+    cargarCultivos()
+=======
+  // Obtener los cultivos recomendados desde la tabla "cultivos"
+  useEffect(() => {
+    let activo = true
+
+    async function cargarCultivos() {
+      try {
+        setCargandoCultivos(true)
+
+        const { data, error: err } = await supabase
+          .from('cultivos')
+          .select('*')
+
+        if (err) throw err
+
+        if (activo) {
+          setCultivos(
+            (data || []).filter(
+              c => normalizar(c.municipio) === normalizar(nombre)
+            )
+          )
+        }
+
+      } catch (err) {
+        console.error('Error cargando cultivos:', err)
+        if (activo) setCultivos([])
+      } finally {
+        if (activo) setCargandoCultivos(false)
+      }
+    }
+
+    if (nombre) cargarCultivos()
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+
+    return () => {
+      activo = false
+    }
+  }, [nombre])
+
   const datos = info?.datos || {}
+  const reglas = info?.reglas || []
+  const hayDatos = Object.keys(datos).length > 0
 
-  // Solo hay datos de Clima; Suelo y Vegetación se muestran sin datos
-  const reglas = (info?.reglas || []).filter(r => r.categoria === 'Clima')
+<<<<<<< HEAD
+  // VEGETACIÓN: cultivo recomendado por estación y el de mayor éxito de cosecha
+=======
+  // Cultivo de mayor éxito de cosecha
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+  const mejorCultivo = cultivos.reduce(
+    (mejor, c) =>
+      !mejor || Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+        ? c
+        : mejor,
+    null
+  )
 
-  const recomendacionesSinDatos = [
+<<<<<<< HEAD
+=======
+  // Un cultivo por estación: "Primavera-Verano: Frijol · Otoño-Invierno: ..."
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+  const resumenCultivos = ORDEN_ESTACIONES
+    .map(estacion => {
+      const c = cultivos.find(
+        x => normalizar(x.estacion) === normalizar(estacion)
+      )
+<<<<<<< HEAD
+      return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+=======
+      return c
+        ? `${estacion}: ${c.cultivo_recomendado} (${Number(c.exito_cosecha_pct).toFixed(1)}%)`
+        : null
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+    })
+    .filter(Boolean)
+    .join(' · ')
+
+  // Recomendaciones generales (siempre visibles, no dependen de datos)
+  const recomendacionesGenerales = [
     {
       categoria: 'Suelo',
       icono: '▤',
-      titulo: 'Suelo: sin datos disponibles',
-      descripcion: `Aún no hay datos de suelo para generar recomendaciones en ${nombre}.`,
+      titulo: 'Evaluación de las condiciones del suelo',
+      descripcion:
+        'Revisa las características físicas y químicas del suelo antes de establecer actividades agrícolas.',
       tipo: 'Recomendación',
-      nivel: 'Sin datos'
+      nivel: 'Preventivo'
     },
     {
+      // VEGETACIÓN: ahora usa los datos de la tabla cultivos
       categoria: 'Vegetación',
       icono: '♧',
-      titulo: 'Vegetación: sin datos disponibles',
-      descripcion: `Aún no hay datos de vegetación para generar recomendaciones en ${nombre}.`,
+      titulo: 'Cultivos recomendados por estación',
+<<<<<<< HEAD
+      descripcion: mejorCultivo
+        ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}) con ${mejorCultivo.exito_cosecha_pct}%.`
+        : 'Aún no hay cultivos cargados para este municipio.',
       tipo: 'Recomendación',
-      nivel: 'Sin datos'
+      nivel: mejorCultivo
+        ? `${mejorCultivo.exito_cosecha_pct}% de éxito`
+=======
+      descripcion: cargandoCultivos
+        ? 'Cargando cultivos...'
+        : mejorCultivo
+          ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}).`
+          : `Aún no hay cultivos cargados para ${nombre}.`,
+      tipo: 'Recomendación',
+      nivel: mejorCultivo
+        ? `${Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}% de éxito`
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
+        : 'Sin datos'
     }
   ]
-  const hayDatos = Object.keys(datos).length > 0
 
   const recomendaciones = reglas.filter(r => r.tipo !== 'Advertencia')
   const advertencias = reglas.filter(r => r.tipo === 'Advertencia')
@@ -149,26 +292,24 @@ function Recommendations({ nombre, onBack }) {
   // Texto de un indicador: "16.6 °C" o null si no hay dato
   const dato = (indicador) => {
     const d = datos[indicador]
-    return d && d.valor !== null && d.valor !== undefined
-      ? `${d.valor} ${d.unidad}`
-      : null
+    return d ? `${d.valor} ${d.unidad}` : null
   }
 
-  // Promedios anuales (NASA POWER)
+  // Línea de valores para cada tarjeta de condiciones
   const resumenClima = [
     dato('temp_media_anual') && `Temp. media: ${dato('temp_media_anual')}`,
     dato('precip_anual') && `Lluvia: ${dato('precip_anual')}`
   ].filter(Boolean).join(' · ')
 
-  // Condiciones actuales (Open-Meteo)
-  const resumenAhora = [
-    datos.condicion_clima?.etiqueta,
-    dato('temp_actual') && `Temp.: ${dato('temp_actual')}`,
-    dato('humedad_aire') && `Humedad: ${dato('humedad_aire')}`,
-    dato('viento') && `Viento: ${dato('viento')}`,
-    dato('precip_actual') && `Precip.: ${dato('precip_actual')}`
+  const resumenSuelo = [
+    dato('humedad_suelo') && `Humedad: ${dato('humedad_suelo')}`,
+    dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
   ].filter(Boolean).join(' · ')
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
   // Fuentes de datos usadas (sin repetir)
   const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
 
@@ -186,8 +327,8 @@ function Recommendations({ nombre, onBack }) {
         </button>
 
         <div className="recommendations-brand">
-          <span>M</span>
-          METEDGO
+          <span>A</span>
+          agroDGO
         </div>
 
         <div className="recommendations-location">
@@ -262,32 +403,6 @@ function Recommendations({ nombre, onBack }) {
 
         </section>
 
-        {/* RESUMEN */}
-        <section className="recommendations-summary">
-
-          <div>
-            <span>Municipio analizado</span>
-            <strong>{nombre}</strong>
-          </div>
-
-          <div>
-            <span>Áreas de evaluación</span>
-            <strong>3 categorías</strong>
-          </div>
-
-          <div>
-            <span>Estado del análisis</span>
-            <strong>
-              {cargandoInfo
-                ? 'Cargando...'
-                : hayDatos
-                  ? 'Con datos reales'
-                  : 'Sin datos cargados'}
-            </strong>
-          </div>
-
-        </section>
-
         {/* CONDICIONES AMBIENTALES */}
         <section className="recommendations-section">
 
@@ -308,17 +423,7 @@ function Recommendations({ nombre, onBack }) {
                 Temperatura, humedad, precipitación
                 y condiciones meteorológicas.
               </p>
-              <div className="condition-values">
-                {resumenClima && (
-                  <span className="condition-value">{resumenClima}</span>
-                )}
-                {resumenAhora && (
-                  <span className="condition-value">Ahora: {resumenAhora}</span>
-                )}
-                {!resumenClima && !resumenAhora && (
-                  <span className="condition-value">Pendiente de datos reales</span>
-                )}
-              </div>
+              {resumenClima && <span>{resumenClima}</span>}
             </article>
 
             <article className="condition-card">
@@ -328,21 +433,51 @@ function Recommendations({ nombre, onBack }) {
                 Tipo de suelo, textura, propiedades
                 y características edafológicas.
               </p>
-              <div className="condition-values">
-                <span className="condition-value">Sin datos disponibles</span>
-              </div>
+              {resumenSuelo && <span>{resumenSuelo}</span>}
+              <span>Pendiente de datos reales</span>
             </article>
 
+            {/* VEGETACIÓN: usa los datos de la tabla cultivos */}
             <article className="condition-card">
               <div className="condition-icon vegetation-icon">♧</div>
               <h3>Vegetación</h3>
               <p>
-                Cobertura vegetal, ecosistemas
-                y distribución de la vegetación.
+<<<<<<< HEAD
+                Cultivos recomendados por estación, rendimiento
+                y éxito de cosecha.
               </p>
-              <div className="condition-values">
-                <span className="condition-value">Sin datos disponibles</span>
-              </div>
+              <span>
+                {mejorCultivo
+                  ? `${cultivos.length} cultivos registrados · mejor: ${mejorCultivo.cultivo_recomendado}`
+                  : 'Pendiente de datos reales'}
+              </span>
+=======
+                Cultivos recomendados por estación
+                y su éxito de cosecha.
+              </p>
+              {mejorCultivo ? (
+                <>
+                  <span>
+                    {ORDEN_ESTACIONES
+                      .map(estacion => {
+                        const c = cultivos.find(
+                          x => normalizar(x.estacion) === normalizar(estacion)
+                        )
+                        return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+                      })
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                  <span>
+                    Mayor éxito: {mejorCultivo.cultivo_recomendado} ({Number(mejorCultivo.exito_cosecha_pct).toFixed(1)}%)
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {cargandoCultivos ? 'Cargando...' : 'Pendiente de datos reales'}
+                </span>
+              )}
+>>>>>>> 26c63c53a3cf1a58e935dc6a5d24371a570ab46e
             </article>
 
           </div>
@@ -391,11 +526,11 @@ function Recommendations({ nombre, onBack }) {
 
             ))}
 
-            {recomendacionesSinDatos.map((item, index) => (
+            {recomendacionesGenerales.map((item, index) => (
 
               <article
                 className="recommendation-item"
-                key={`sin-datos-${index}`}
+                key={`general-${index}`}
               >
 
                 <div className="recommendation-item-icon">
@@ -481,7 +616,7 @@ function Recommendations({ nombre, onBack }) {
 
           <div className="warning-note">
             {hayDatos
-              ? `Fuentes: ${fuentes.join('; ')}. Las recomendaciones usan umbrales generales y son orientativas: valídalas con un especialista local.`
+              ? `Fuentes: ${fuentes.join('; ')}. Las recomendaciones usan umbrales generales.`
               : 'Las advertencias se habilitarán cuando haya datos ambientales cargados.'}
           </div>
 
@@ -489,9 +624,6 @@ function Recommendations({ nombre, onBack }) {
 
       </main>
 
-      <footer className="recommendations-footer">
-        METEDGO · EXPLORACIÓN AMBIENTAL DE DURANGO
-      </footer>
 
     </div>
   )
