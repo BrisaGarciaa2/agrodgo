@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import L from 'leaflet'
 
@@ -13,12 +14,18 @@ import { supabase } from '../supabaseClient'
 import 'leaflet/dist/leaflet.css'
 import './Recommendations.css'
 
-const ICONOS = { Clima: '☀', Suelo: '▤', Vegetación: '♧' }
+const ICONOS = {
+  Clima: '☀',
+  Suelo: '▤',
+  Vegetación: '♧'
+}
 
-// VEGETACIÓN: orden de las estaciones de la tabla cultivos
-const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+const ORDEN_ESTACIONES = [
+  'Primavera-Verano',
+  'Otoño-Invierno',
+  'Perennes'
+]
 
-// VEGETACIÓN: normaliza nombres (sin acentos, minúsculas)
 const normalizar = (texto) =>
   (texto || '')
     .normalize('NFD')
@@ -26,7 +33,6 @@ const normalizar = (texto) =>
     .toLowerCase()
     .trim()
 
-// Mapa pequeño del municipio seleccionado
 function AjustarMapa({ feature }) {
   const map = useMap()
 
@@ -45,19 +51,23 @@ function AjustarMapa({ feature }) {
 }
 
 function Recommendations({ nombre, onBack }) {
-
   const [feature, setFeature] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(false)
 
-  // Datos reales y reglas activas del municipio
+  // Información general y reglas de Supabase
   const [info, setInfo] = useState(null)
   const [cargandoInfo, setCargandoInfo] = useState(true)
 
-  // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
+  // Cultivos del municipio
   const [cultivos, setCultivos] = useState([])
 
-  // Obtener el contorno geográfico del municipio
+  // DATOS DE SUELO: misma consulta que Municipality.jsx
+  const [anio, setAnio] = useState(2026)
+  const [datosSuelo, setDatosSuelo] = useState(null)
+  const [cargandoSuelo, setCargandoSuelo] = useState(true)
+
+  // Cargar mapa municipal
   useEffect(() => {
     let activo = true
 
@@ -101,7 +111,7 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
-  // Obtener datos ambientales y recomendaciones desde Supabase
+  // Cargar información ambiental y recomendaciones
   useEffect(() => {
     let activo = true
 
@@ -115,6 +125,7 @@ function Recommendations({ nombre, onBack }) {
         )
 
         if (err) throw err
+
         if (activo) setInfo(data)
 
       } catch (err) {
@@ -132,7 +143,7 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
-  // VEGETACIÓN: cargar los cultivos del municipio desde Supabase
+  // CULTIVOS: consultar tabla cultivos
   useEffect(() => {
     if (!nombre) return
 
@@ -165,42 +176,90 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+  // SUELO: MISMA CONSULTA DEL PRIMER ARCHIVO
+  useEffect(() => {
+    if (!nombre) return
+
+    let activo = true
+
+    async function cargarDatosSuelo() {
+      try {
+        setCargandoSuelo(true)
+
+        const { data, error: errorSuelo } = await supabase
+          .from('estadisticas_anuales_municipio')
+          .select('*')
+          .ilike('municipio', nombre)
+          .eq('anio', anio)
+          .maybeSingle()
+
+        if (!activo) return
+
+        if (errorSuelo) {
+          console.error('Error leyendo datos de suelo:', errorSuelo)
+        }
+
+        setDatosSuelo(data ?? null)
+
+      } catch (err) {
+        console.error('Error consultando suelo:', err)
+
+        if (activo) setDatosSuelo(null)
+
+      } finally {
+        if (activo) setCargandoSuelo(false)
+      }
+    }
+
+    cargarDatosSuelo()
+
+    return () => {
+      activo = false
+    }
+  }, [nombre, anio])
+
+  // Información recibida desde la función RPC
   const datos = info?.datos || {}
   const reglas = info?.reglas || []
   const hayDatos = Object.keys(datos).length > 0
 
-  // VEGETACIÓN: cultivo recomendado por estación y el de mayor éxito de cosecha
+  // Cultivo con mayor porcentaje de éxito
   const mejorCultivo = cultivos.reduce(
     (mejor, c) =>
-      !mejor || Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+      !mejor ||
+      Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
         ? c
         : mejor,
     null
   )
 
+  // Cultivos por estación
   const resumenCultivos = ORDEN_ESTACIONES
     .map(estacion => {
       const c = cultivos.find(
         x => normalizar(x.estacion) === normalizar(estacion)
       )
-      return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+
+      return c
+        ? `${estacion}: ${c.cultivo_recomendado}`
+        : null
     })
     .filter(Boolean)
     .join(' · ')
 
-  // Recomendaciones generales (siempre visibles, no dependen de datos)
+  // Recomendaciones generales
   const recomendacionesGenerales = [
     {
       categoria: 'Suelo',
       icono: '▤',
       titulo: 'Evaluación de las condiciones del suelo',
-      descripcion:
-        'Revisa las características físicas y químicas del suelo antes de establecer actividades agrícolas.',
+      descripcion: datosSuelo
+        ? `Los suelos dominantes son ${datosSuelo.suelos_dominantes || 'Sin dato'}. La vocación edáfica registrada es: ${datosSuelo.vocacion_edafica || 'Sin dato'}.`
+        : 'Revisa las características físicas y químicas del suelo antes de establecer actividades agrícolas.',
       tipo: 'Recomendación',
       nivel: 'Preventivo'
     },
     {
-      // VEGETACIÓN: ahora usa los datos de la tabla cultivos
       categoria: 'Vegetación',
       icono: '♧',
       titulo: 'Cultivos recomendados por estación',
@@ -214,28 +273,55 @@ function Recommendations({ nombre, onBack }) {
     }
   ]
 
-  const recomendaciones = reglas.filter(r => r.tipo !== 'Advertencia')
-  const advertencias = reglas.filter(r => r.tipo === 'Advertencia')
+  const recomendaciones = reglas.filter(
+    r => r.tipo !== 'Advertencia'
+  )
 
-  // Texto de un indicador: "16.6 °C" o null si no hay dato
+  const advertencias = reglas.filter(
+    r => r.tipo === 'Advertencia'
+  )
+
+  // Indicadores generales
   const dato = (indicador) => {
     const d = datos[indicador]
     return d ? `${d.valor} ${d.unidad}` : null
   }
 
-  // Línea de valores para cada tarjeta de condiciones
   const resumenClima = [
-    dato('temp_media_anual') && `Temp. media: ${dato('temp_media_anual')}`,
-    dato('precip_anual') && `Lluvia: ${dato('precip_anual')}`
+    dato('temp_media_anual') &&
+      `Temp. media: ${dato('temp_media_anual')}`,
+    dato('precip_anual') &&
+      `Lluvia: ${dato('precip_anual')}`
   ].filter(Boolean).join(' · ')
 
-  const resumenSuelo = [
-    dato('humedad_suelo') && `Humedad: ${dato('humedad_suelo')}`,
-    dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
-  ].filter(Boolean).join(' · ')
+  // RESUMEN DE SUELO CON DATOS REALES
+  const resumenSuelo = datosSuelo
+    ? [
+        datosSuelo.suelos_dominantes &&
+          `Suelos: ${datosSuelo.suelos_dominantes}`,
+        datosSuelo.vocacion_edafica &&
+          `Vocación: ${datosSuelo.vocacion_edafica}`
+      ].filter(Boolean).join(' · ')
+    : ''
 
-  // Fuentes de datos usadas (sin repetir)
-  const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
+  // Superficies agrícolas
+  const superficieTemporal = datosSuelo
+    ? `${Number(datosSuelo.hectareas_temporal || 0).toLocaleString()} ha`
+    : 'Sin dato'
+
+  const superficieRiego = datosSuelo
+    ? `${Number(datosSuelo.hectareas_riego || 0).toLocaleString()} ha`
+    : 'Sin dato'
+
+  const superficieTotal = datosSuelo
+    ? `${Number(datosSuelo.hectareas_totales || 0).toLocaleString()} ha`
+    : 'Sin dato'
+
+  const fuentes = [
+    ...new Set(
+      Object.values(datos).map(d => d.fuente).filter(Boolean)
+    )
+  ]
 
   return (
     <div className="recommendations-page">
@@ -343,9 +429,9 @@ function Recommendations({ nombre, onBack }) {
           <div>
             <span>Estado del análisis</span>
             <strong>
-              {cargandoInfo
+              {cargandoInfo || cargandoSuelo
                 ? 'Cargando...'
-                : hayDatos
+                : hayDatos || datosSuelo
                   ? 'Con datos reales'
                   : 'Sin datos cargados'}
             </strong>
@@ -366,40 +452,160 @@ function Recommendations({ nombre, onBack }) {
 
           <div className="condition-grid">
 
+            {/* CLIMA */}
             <article className="condition-card">
-              <div className="condition-icon climate-icon">☀</div>
+
+              <div className="condition-icon climate-icon">
+                ☀
+              </div>
+
               <h3>Clima</h3>
+
               <p>
                 Temperatura, humedad, precipitación
                 y condiciones meteorológicas.
               </p>
+
               {resumenClima && <span>{resumenClima}</span>}
+
             </article>
 
+            {/* SUELO: DATOS REALES DE SUPABASE */}
             <article className="condition-card">
-              <div className="condition-icon soil-icon">▤</div>
+
+              <div className="condition-icon soil-icon">
+                ▤
+              </div>
+
               <h3>Suelo</h3>
+
               <p>
-                Tipo de suelo, textura, propiedades
-                y características edafológicas.
+                Características edafológicas, vocación
+                y superficie agrícola del municipio.
               </p>
-              {resumenSuelo && <span>{resumenSuelo}</span>}
-              <span>Pendiente de datos reales</span>
+
+              <div style={{ margin: '10px 0 15px' }}>
+
+                <label
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    marginRight: '8px',
+                    color: '#345C43'
+                  }}
+                >
+                  Año:
+                </label>
+
+                <select
+                  value={anio}
+                  onChange={(e) => setAnio(Number(e.target.value))}
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: '9px',
+                    border: '1px solid #C9D6BE',
+                    background: '#F3F4EA',
+                    color: '#193D2B',
+                    fontFamily: 'inherit',
+                    fontWeight: 700
+                  }}
+                >
+                  {[2020, 2021, 2022, 2023, 2024, 2025, 2026].map(y => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+
+              </div>
+
+              {cargandoSuelo ? (
+                <span>Consultando información del suelo...</span>
+              ) : datosSuelo ? (
+
+                <div style={{
+                  display: 'grid',
+                  gap: '10px',
+                  width: '100%',
+                  marginTop: '5px'
+                }}>
+
+                  <div>
+                    <span>
+                      Suelos dominantes ({anio})
+                    </span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {datosSuelo.suelos_dominantes || 'Sin dato'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Vocación edáfica</span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {datosSuelo.vocacion_edafica || 'Sin dato'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Ciclo agrícola dominante</span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {datosSuelo.ciclo_dominante || 'Sin dato'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Superficie de temporal</span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {superficieTemporal}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Superficie de riego</span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {superficieRiego}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Superficie total</span>
+                    <strong style={{ display: 'block', marginTop: '5px' }}>
+                      {superficieTotal}
+                    </strong>
+                  </div>
+
+                </div>
+
+              ) : (
+
+                <span>
+                  No hay datos de suelo registrados para {nombre} en {anio}.
+                </span>
+
+              )}
+
             </article>
 
-            {/* VEGETACIÓN: usa los datos de la tabla cultivos */}
+            {/* CULTIVOS */}
             <article className="condition-card">
-              <div className="condition-icon vegetation-icon">♧</div>
+
+              <div className="condition-icon vegetation-icon">
+                ♧
+              </div>
+
               <h3>Vegetación</h3>
+
               <p>
                 Cultivos recomendados por estación, rendimiento
                 y éxito de cosecha.
               </p>
+
               <span>
                 {mejorCultivo
                   ? `${cultivos.length} cultivos registrados · mejor: ${mejorCultivo.cultivo_recomendado}`
                   : 'Pendiente de datos reales'}
               </span>
+
             </article>
 
           </div>
@@ -530,7 +736,9 @@ function Recommendations({ nombre, onBack }) {
                 </p>
               </div>
 
-              <span>{hayDatos ? 'Sin alertas' : 'Sin evaluar'}</span>
+              <span>
+                {hayDatos ? 'Sin alertas' : 'Sin evaluar'}
+              </span>
 
             </div>
 
