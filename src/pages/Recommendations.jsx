@@ -119,30 +119,29 @@ function Recommendations({ nombre, onBack }) {
   }, [nombre])
 
   const datos = info?.datos || {}
-  const reglas = info?.reglas || []
-  const hayDatos = Object.keys(datos).length > 0
 
-  // Recomendaciones generales (siempre visibles, no dependen de datos)
-  const recomendacionesGenerales = [
+  // Solo hay datos de Clima; Suelo y Vegetación se muestran sin datos
+  const reglas = (info?.reglas || []).filter(r => r.categoria === 'Clima')
+
+  const recomendacionesSinDatos = [
     {
       categoria: 'Suelo',
       icono: '▤',
-      titulo: 'Evaluación de las condiciones del suelo',
-      descripcion:
-        'Revisa las características físicas y químicas del suelo antes de establecer actividades agrícolas.',
+      titulo: 'Suelo: sin datos disponibles',
+      descripcion: `Aún no hay datos de suelo para generar recomendaciones en ${nombre}.`,
       tipo: 'Recomendación',
-      nivel: 'Preventivo'
+      nivel: 'Sin datos'
     },
     {
       categoria: 'Vegetación',
       icono: '♧',
-      titulo: 'Seguimiento de la cobertura vegetal',
-      descripcion:
-        'Monitorea los cambios en la cobertura vegetal y las condiciones de conservación del territorio.',
+      titulo: 'Vegetación: sin datos disponibles',
+      descripcion: `Aún no hay datos de vegetación para generar recomendaciones en ${nombre}.`,
       tipo: 'Recomendación',
-      nivel: 'Preventivo'
+      nivel: 'Sin datos'
     }
   ]
+  const hayDatos = Object.keys(datos).length > 0
 
   const recomendaciones = reglas.filter(r => r.tipo !== 'Advertencia')
   const advertencias = reglas.filter(r => r.tipo === 'Advertencia')
@@ -150,21 +149,25 @@ function Recommendations({ nombre, onBack }) {
   // Texto de un indicador: "16.6 °C" o null si no hay dato
   const dato = (indicador) => {
     const d = datos[indicador]
-    return d ? `${d.valor} ${d.unidad}` : null
+    return d && d.valor !== null && d.valor !== undefined
+      ? `${d.valor} ${d.unidad}`
+      : null
   }
 
-  // Línea de valores para cada tarjeta de condiciones
+  // Promedios anuales (NASA POWER)
   const resumenClima = [
     dato('temp_media_anual') && `Temp. media: ${dato('temp_media_anual')}`,
     dato('precip_anual') && `Lluvia: ${dato('precip_anual')}`
   ].filter(Boolean).join(' · ')
 
-  const resumenSuelo = [
-    dato('humedad_suelo') && `Humedad: ${dato('humedad_suelo')}`,
-    dato('temp_suelo') && `Temp.: ${dato('temp_suelo')}`
+  // Condiciones actuales (Open-Meteo)
+  const resumenAhora = [
+    datos.condicion_clima?.etiqueta,
+    dato('temp_actual') && `Temp.: ${dato('temp_actual')}`,
+    dato('humedad_aire') && `Humedad: ${dato('humedad_aire')}`,
+    dato('viento') && `Viento: ${dato('viento')}`,
+    dato('precip_actual') && `Precip.: ${dato('precip_actual')}`
   ].filter(Boolean).join(' · ')
-
-  const resumenVegetacion = dato('ndvi') ? `NDVI: ${datos.ndvi.valor}` : ''
 
   // Fuentes de datos usadas (sin repetir)
   const fuentes = [...new Set(Object.values(datos).map(d => d.fuente))]
@@ -305,8 +308,17 @@ function Recommendations({ nombre, onBack }) {
                 Temperatura, humedad, precipitación
                 y condiciones meteorológicas.
               </p>
-              {resumenClima && <span>{resumenClima}</span>}
-              <span>Pendiente de datos reales</span>
+              <div className="condition-values">
+                {resumenClima && (
+                  <span className="condition-value">{resumenClima}</span>
+                )}
+                {resumenAhora && (
+                  <span className="condition-value">Ahora: {resumenAhora}</span>
+                )}
+                {!resumenClima && !resumenAhora && (
+                  <span className="condition-value">Pendiente de datos reales</span>
+                )}
+              </div>
             </article>
 
             <article className="condition-card">
@@ -316,8 +328,9 @@ function Recommendations({ nombre, onBack }) {
                 Tipo de suelo, textura, propiedades
                 y características edafológicas.
               </p>
-              {resumenSuelo && <span>{resumenSuelo}</span>}
-              <span>Pendiente de datos reales</span>
+              <div className="condition-values">
+                <span className="condition-value">Sin datos disponibles</span>
+              </div>
             </article>
 
             <article className="condition-card">
@@ -327,8 +340,9 @@ function Recommendations({ nombre, onBack }) {
                 Cobertura vegetal, ecosistemas
                 y distribución de la vegetación.
               </p>
-              {resumenVegetacion && <span>{resumenVegetacion}</span>}
-              <span>Pendiente de datos reales</span>
+              <div className="condition-values">
+                <span className="condition-value">Sin datos disponibles</span>
+              </div>
             </article>
 
           </div>
@@ -377,11 +391,11 @@ function Recommendations({ nombre, onBack }) {
 
             ))}
 
-            {recomendacionesGenerales.map((item, index) => (
+            {recomendacionesSinDatos.map((item, index) => (
 
               <article
                 className="recommendation-item"
-                key={`general-${index}`}
+                key={`sin-datos-${index}`}
               >
 
                 <div className="recommendation-item-icon">
