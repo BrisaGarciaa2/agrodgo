@@ -337,7 +337,7 @@ function Recommendations({ nombre, onBack }) {
         </button>
 
         <div className="recommendations-brand">
-          <span>M</span>
+          <span>A</span>
           agroDGO
         </div>
 
