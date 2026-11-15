@@ -106,7 +106,7 @@
   background: transparent;
   padding: 0;
   border: none;
-  font-size: 11px;
+  font-size: 25px;
   letter-spacing: 2px;
   font-weight: 800;
 }
@@ -120,7 +120,7 @@
 
 .dash-intro p {
   color: #E4E98F;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.8;
   max-width: 750px;
 }
@@ -138,7 +138,7 @@
   color:#E4E98F;
   padding: 0;
   border-radius: 0;
-  font-size: 12px;
+  font-size: 25px;
   font-weight: 600;
 }
 
@@ -196,7 +196,7 @@
 
 .general-card span {
   color: #667563;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 500;
 }
 
@@ -209,7 +209,7 @@
 
 .general-card p {
   color: #788373;
-  font-size: 11px;
+  font-size: 20px;
   margin: 0;
 }
 
@@ -261,7 +261,7 @@
   padding: 12px 23px;
   border-radius: 30px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 700;
   font-family: inherit;
   transition: 0.25s;
@@ -327,7 +327,7 @@
 }
 
 .map-sidebar h3 {
-  font-size: 14px;
+  font-size: 20px;
   color: #193D2B;
   margin: 0 0 14px;
   font-weight: 800;
@@ -340,7 +340,7 @@
   background: #FFFFFF;
   border-radius: 30px;
   outline: none;
-  font-size: 12px;
+  font-size: 15px;
   font-family: inherit;
   transition: 0.2s;
 }
@@ -370,7 +370,7 @@
   text-align: left;
   cursor: pointer;
   color: #345C43;
-  font-size: 12px;
+  font-size: 15px;
   font-family: inherit;
 }
 
@@ -380,7 +380,7 @@
 
 .search-results p {
   padding: 10px;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .map-divider {
@@ -390,7 +390,7 @@
 
 .map-description {
   color: #758273;
-  font-size: 12px;
+  font-size: 17px;
   line-height: 1.8;
 }
 
@@ -403,7 +403,7 @@
 }
 
 .legend h4 {
-  font-size: 12px;
+  font-size: 20px;
   color: #193D2B;
   margin-bottom: 15px;
   font-weight: 800;
@@ -413,7 +413,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 11px;
+  font-size: 20px;
   color: #667563;
   margin-bottom: 13px;
 }
