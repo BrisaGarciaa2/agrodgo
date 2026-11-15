@@ -8,14 +8,28 @@ import {
   GeoJSON
 } from 'react-leaflet'
 
+import { supabase } from '../supabaseClient'// AJUSTA esta ruta a tu proyecto
+
 import 'leaflet/dist/leaflet.css'
 import './Dashboard.css'
 
-// Paletas de colores ilustrativas
-const colores = {
-  Clima: ['#B9D9E8', '#77B8D1', '#E8C77B', '#D98564'],
-  Suelo: ['#D8C09A', '#B99469', '#98734F', '#E4D6B8'],
-  Vegetación: ['#D5E2C0', '#A6C18A', '#6D956B', '#3F704C']
+// Configuración de cada capa: indicador que se muestra y paleta (de menor a mayor)
+const capaConfig = {
+  Clima: {
+    indicador: 'temp_media_anual',
+    etiqueta: 'Temperatura media anual',
+    colores: ['#B9D9E8', '#77B8D1', '#E8C77B', '#D98564']
+  },
+  Suelo: {
+    indicador: 'humedad_suelo',
+    etiqueta: 'Humedad del suelo (0–7 cm)',
+    colores: ['#E4D6B8', '#D8C09A', '#B99469', '#98734F']
+  },
+  Vegetación: {
+    indicador: 'ndvi',
+    etiqueta: 'NDVI (vigor de la vegetación)',
+    colores: ['#D5E2C0', '#A6C18A', '#6D956B', '#3F704C']
+  }
 }
 
 // Ajustar automáticamente el mapa
@@ -37,12 +51,12 @@ function AjustarMapa({ datos }) {
 }
 
 // Componente que dibuja los municipios
-function MunicipalityLayer({ datos, estilo, onSelect }) {
+function MunicipalityLayer({ datos, estilo, onSelect, textoDato, claveCapa }) {
 
   const eventosMunicipio = (feature, layer) => {
     const nombre = feature.properties?.nomgeo || 'Municipio'
 
-    layer.bindTooltip(nombre)
+    layer.bindTooltip(`${nombre}${textoDato(nombre)}`)
 
     layer.on({
       click: () => onSelect(nombre)
@@ -53,7 +67,7 @@ function MunicipalityLayer({ datos, estilo, onSelect }) {
 
   return (
     <GeoJSON
-      key="municipios-durango"
+      key={`municipios-${claveCapa}`}
       data={datos}
       style={estilo}
       onEachFeature={eventosMunicipio}
@@ -68,6 +82,7 @@ function Dashboard({ onSelectMunicipality, onBack }) {
   const [busqueda, setBusqueda] = useState('')
   const [capa, setCapa] = useState('Clima')
   const [error, setError] = useState('')
+  const [datosCapas, setDatosCapas] = useState({})
 
   // Consultar límites municipales de Durango
   useEffect(() => {
@@ -99,6 +114,37 @@ function Dashboard({ onSelectMunicipality, onBack }) {
     cargarMunicipios()
   }, [])
 
+  // Registrar municipios en Supabase y leer los datos de las capas
+  useEffect(() => {
+    if (!municipios?.features?.length) return
+
+    const cargarCapas = async () => {
+      try {
+        const items = municipios.features.map(f => {
+          const c = L.geoJSON(f).getBounds().getCenter()
+          return { nombre: f.properties.nomgeo, lat: c.lat, lon: c.lng }
+        })
+
+        const { data: total, error: errReg } = await supabase.rpc(
+          'registrar_municipios',
+          { p_items: items }
+        )
+        console.log('Municipios registrados:', total, errReg)
+
+        const { data, error: errCapas } = await supabase.rpc('capas_dashboard')
+        console.log('Capas recibidas:', Object.keys(data || {}).length, errCapas)
+
+        if (errCapas) throw errCapas
+        setDatosCapas(data || {})
+
+      } catch (err) {
+        console.error('Error cargando capas:', err)
+      }
+    }
+
+    cargarCapas()
+  }, [municipios])
+
   const lista = municipios?.features || []
 
   // Buscador
@@ -114,26 +160,45 @@ function Dashboard({ onSelectMunicipality, onBack }) {
     onSelectMunicipality?.(nombre)
   }
 
+  // ----- Datos de la capa activa -----
+  const config = capaConfig[capa]
+
+  const valorDe = (nombre) => datosCapas[nombre]?.[config.indicador]?.valor
+
+  const valores = Object.keys(datosCapas)
+    .map(n => Number(valorDe(n)))
+    .filter(v => !isNaN(v) && valorDe !== undefined)
+
+  const hayDatos = valores.length > 0
+  const min = hayDatos ? Math.min(...valores) : 0
+  const max = hayDatos ? Math.max(...valores) : 1
+
+  const nivelDe = (v) =>
+    Math.min(3, Math.max(0, Math.floor(((v - min) / (max - min || 1)) * 4)))
+
   // Estilo de los municipios
   const estiloMunicipio = (feature) => {
-
     const nombre = feature.properties?.nomgeo || ''
-
-    const indice = [...nombre].reduce(
-      (total, letra) => total + letra.charCodeAt(0),
-      0
-    )
-
-    const paleta = colores[capa]
-    const color = paleta[indice % paleta.length]
+    const v = valorDe(nombre)
 
     return {
-      fillColor: color,
+      fillColor: v == null ? '#DDDDDD' : config.colores[nivelDe(Number(v))],
       fillOpacity: 0.75,
       color: '#52634D',
       weight: 1.5
     }
   }
+
+  const textoDato = (nombre) => {
+    const d = datosCapas[nombre]?.[config.indicador]
+    return d ? ` · ${d.valor} ${d.unidad}` : ' · sin datos'
+  }
+
+  // Cambia cuando cambia la capa o llegan datos, para repintar los polígonos
+  const claveCapa = `${capa}-${valores.length}`
+
+  // Datos del municipio seleccionado
+  const datosMunicipio = municipio ? datosCapas[municipio] : null
 
   return (
     <div className="dashboard">
@@ -166,30 +231,30 @@ function Dashboard({ onSelectMunicipality, onBack }) {
       <main className="dash-content">
 
         {/* INTRODUCCIÓN */}
-        
-<section className="dash-intro">
 
-  <div className="intro-text">
-    <span className="dash-label">
-      EXPLORADOR TERRITORIAL
-    </span>
+        <section className="dash-intro">
 
-    <h1>Descubre Durango</h1>
+          <div className="intro-text">
+            <span className="dash-label">
+              EXPLORADOR TERRITORIAL
+            </span>
 
-    <p>
-      Explora los 39 municipios del estado y conoce sus
-      características ambientales. Consulta información
-      sobre el clima, los tipos de suelo y la vegetación
-      para comprender mejor el entorno natural de cada región.
-    </p>
-  </div>
+            <h1>Descubre Durango</h1>
 
-  <div className="municipality-count">
-    <strong>39</strong>
-    <span>Municipios por explorar</span>
-  </div>
+            <p>
+              Explora los 39 municipios del estado y conoce sus
+              características ambientales. Consulta información
+              sobre el clima, los tipos de suelo y la vegetación
+              para comprender mejor el entorno natural de cada región.
+            </p>
+          </div>
 
-</section>
+          <div className="municipality-count">
+            <strong>39</strong>
+            <span>Municipios por explorar</span>
+          </div>
+
+        </section>
 
 
         {/* TARJETAS GENERALES */}
@@ -285,6 +350,8 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                     datos={municipios}
                     estilo={estiloMunicipio}
                     onSelect={seleccionar}
+                    textoDato={textoDato}
+                    claveCapa={claveCapa}
                   />
 
                 </MapContainer>
@@ -342,25 +409,45 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                 <div className="selected-municipality">
                   <span>Municipio seleccionado</span>
                   <strong>{municipio}</strong>
+
+                  {datosMunicipio ? (
+                    <ul>
+                      {Object.entries(datosMunicipio).map(([clave, d]) => (
+                        <li key={clave}>
+                          {clave.replace(/_/g, ' ')}: {d.valor} {d.unidad}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>Sin datos cargados todavía.</p>
+                  )}
                 </div>
               )}
 
               <div className="legend">
 
-                <h4>Leyenda: {capa}</h4>
+                <h4>{config.etiqueta}</h4>
 
-                {colores[capa].map((color, index) => (
-                  <div className="legend-item" key={color}>
-                    <span style={{ background: color }}></span>
-                    {capa} · Nivel {index + 1}
-                  </div>
-                ))}
+                {config.colores.map((color, index) => {
+                  const desde = min + ((max - min) / 4) * index
+                  const hasta = min + ((max - min) / 4) * (index + 1)
+
+                  return (
+                    <div className="legend-item" key={color}>
+                      <span style={{ background: color }}></span>
+                      {hayDatos
+                        ? `${desde.toFixed(1)} – ${hasta.toFixed(1)}`
+                        : `Nivel ${index + 1}`}
+                    </div>
+                  )
+                })}
 
               </div>
 
               <div className="data-notice">
-                Los colores son ilustrativos. Todavía no representan
-                mediciones ambientales reales.
+                {hayDatos
+                  ? 'Datos de NASA POWER, Open-Meteo y NASA MODIS. Gris = sin datos.'
+                  : 'Aún no hay datos cargados para esta capa.'}
               </div>
 
             </aside>
