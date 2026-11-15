@@ -25,12 +25,24 @@ const capaConfig = {
     etiqueta: 'Humedad del suelo (0–7 cm)',
     colores: ['#E4D6B8', '#D8C09A', '#B99469', '#98734F']
   },
+  // VEGETACIÓN: ahora usa la tabla "cultivos" (éxito de cosecha máximo por municipio)
   Vegetación: {
-    indicador: 'ndvi',
-    etiqueta: 'NDVI (vigor de la vegetación)',
+    indicador: 'exito_cosecha_pct',
+    etiqueta: 'Éxito de cosecha (%) del mejor cultivo',
     colores: ['#D5E2C0', '#A6C18A', '#6D956B', '#3F704C']
   }
 }
+
+// VEGETACIÓN: orden en que se muestran las estaciones
+const ordenEstaciones = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// VEGETACIÓN: normaliza nombres (sin acentos, minúsculas) para empatar INEGI con la tabla
+const normalizar = (texto) =>
+  (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 
 // Ajustar automáticamente el mapa
 function AjustarMapa({ datos }) {
@@ -83,6 +95,8 @@ function Dashboard({ onSelectMunicipality, onBack }) {
   const [capa, setCapa] = useState('Clima')
   const [error, setError] = useState('')
   const [datosCapas, setDatosCapas] = useState({})
+  // VEGETACIÓN: filas de la tabla "cultivos"
+  const [cultivos, setCultivos] = useState([])
 
   // Consultar límites municipales de Durango
   useEffect(() => {
@@ -145,6 +159,47 @@ function Dashboard({ onSelectMunicipality, onBack }) {
     cargarCapas()
   }, [municipios])
 
+  // VEGETACIÓN: leer la tabla "cultivos"
+  useEffect(() => {
+    const cargarCultivos = async () => {
+      try {
+        const { data, error: errCultivos } = await supabase
+          .from('cultivos')
+          .select(
+            'id, municipio, estacion, cultivo_recomendado, anios_evaluados, volumen_promedio_ton, rendimiento_prom, valor_promedio_mxn, exito_cosecha_pct'
+          )
+
+        console.log('Cultivos recibidos:', (data || []).length, errCultivos)
+
+        if (errCultivos) throw errCultivos
+        setCultivos(data || [])
+
+      } catch (err) {
+        console.error('Error cargando cultivos:', err)
+      }
+    }
+
+    cargarCultivos()
+  }, [])
+
+  // VEGETACIÓN: agrupa los cultivos por municipio (clave normalizada)
+  const cultivosPorMunicipio = cultivos.reduce((acc, fila) => {
+    const clave = normalizar(fila.municipio)
+    if (!acc[clave]) acc[clave] = []
+    acc[clave].push(fila)
+    return acc
+  }, {})
+
+  // VEGETACIÓN: cultivo con mayor éxito de cosecha de una lista de filas
+  const mejorCultivo = (filas) =>
+    filas.reduce(
+      (mejor, f) =>
+        !mejor || Number(f.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+          ? f
+          : mejor,
+      null
+    )
+
   const lista = municipios?.features || []
 
   // Buscador
@@ -163,9 +218,21 @@ function Dashboard({ onSelectMunicipality, onBack }) {
   // ----- Datos de la capa activa -----
   const config = capaConfig[capa]
 
-  const valorDe = (nombre) => datosCapas[nombre]?.[config.indicador]?.valor
+  const valorDe = (nombre) => {
+    // VEGETACIÓN: mayor éxito de cosecha entre los cultivos del municipio
+    if (capa === 'Vegetación') {
+      const filas = cultivosPorMunicipio[normalizar(nombre)]
+      return filas?.length ? mejorCultivo(filas).exito_cosecha_pct : undefined
+    }
+    return datosCapas[nombre]?.[config.indicador]?.valor
+  }
 
-  const valores = Object.keys(datosCapas)
+  const nombresConDatos =
+    capa === 'Vegetación'
+      ? Object.keys(cultivosPorMunicipio)
+      : Object.keys(datosCapas)
+
+  const valores = nombresConDatos
     .map(n => Number(valorDe(n)))
     .filter(v => !isNaN(v) && valorDe !== undefined)
 
@@ -190,6 +257,14 @@ function Dashboard({ onSelectMunicipality, onBack }) {
   }
 
   const textoDato = (nombre) => {
+    // VEGETACIÓN: muestra el mejor cultivo y su éxito de cosecha
+    if (capa === 'Vegetación') {
+      const filas = cultivosPorMunicipio[normalizar(nombre)]
+      if (!filas?.length) return ' · sin datos'
+      const mejor = mejorCultivo(filas)
+      return ` · ${mejor.cultivo_recomendado} (${mejor.exito_cosecha_pct}% éxito)`
+    }
+
     const d = datosCapas[nombre]?.[config.indicador]
     return d ? ` · ${d.valor} ${d.unidad}` : ' · sin datos'
   }
@@ -199,6 +274,18 @@ function Dashboard({ onSelectMunicipality, onBack }) {
 
   // Datos del municipio seleccionado
   const datosMunicipio = municipio ? datosCapas[municipio] : null
+
+  // VEGETACIÓN: cultivos del municipio seleccionado, ordenados por estación
+  const cultivosMunicipio = municipio
+    ? [...(cultivosPorMunicipio[normalizar(municipio)] || [])].sort(
+        (a, b) =>
+          ordenEstaciones.indexOf(a.estacion) -
+          ordenEstaciones.indexOf(b.estacion)
+      )
+    : []
+  const mejorMunicipio = cultivosMunicipio.length
+    ? mejorCultivo(cultivosMunicipio)
+    : null
 
   return (
     <div className="dashboard">
@@ -410,7 +497,33 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                   <span>Municipio seleccionado</span>
                   <strong>{municipio}</strong>
 
-                  {datosMunicipio ? (
+                  {capa === 'Vegetación' ? (
+                    // VEGETACIÓN: cultivo recomendado por estación
+                    cultivosMunicipio.length ? (
+                      <ul>
+                        {cultivosMunicipio.map(c => {
+                          const esMejor = c.id === mejorMunicipio?.id
+                          return (
+                            <li
+                              key={c.id}
+                              style={esMejor ? { fontWeight: 600 } : undefined}
+                            >
+                              {c.estacion}: {c.cultivo_recomendado}
+                              {esMejor && ' ★ mayor éxito de cosecha'}
+                              <br />
+                              Éxito de cosecha: {c.exito_cosecha_pct}% · Rendimiento: {c.rendimiento_prom}
+                              <br />
+                              Volumen: {Number(c.volumen_promedio_ton).toLocaleString('es-MX')} ton · Valor: ${Number(c.valor_promedio_mxn).toLocaleString('es-MX')} MXN
+                              <br />
+                              Años evaluados: {c.anios_evaluados}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    ) : (
+                      <p>Sin datos de cultivos para este municipio.</p>
+                    )
+                  ) : datosMunicipio ? (
                     <ul>
                       {Object.entries(datosMunicipio).map(([clave, d]) => (
                         <li key={clave}>
@@ -446,7 +559,9 @@ function Dashboard({ onSelectMunicipality, onBack }) {
 
               <div className="data-notice">
                 {hayDatos
-                  ? 'Datos de NASA POWER, Open-Meteo y NASA MODIS. Gris = sin datos.'
+                  ? capa === 'Vegetación'
+                    ? 'Datos de la tabla de cultivos (cultivo recomendado por estación). Gris = sin datos.'
+                    : 'Datos de NASA POWER, Open-Meteo y NASA MODIS. Gris = sin datos.'
                   : 'Aún no hay datos cargados para esta capa.'}
               </div>
 

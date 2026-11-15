@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import L from 'leaflet'
 
@@ -9,8 +8,21 @@ import {
   useMap
 } from 'react-leaflet'
 
+import { supabase } from '../supabaseClient'// VEGETACIÓN: AJUSTA esta ruta a tu proyecto
+
 import 'leaflet/dist/leaflet.css'
 import './Recommendations.css'
+
+// VEGETACIÓN: orden de las estaciones de la tabla cultivos
+const ORDEN_ESTACIONES = ['Primavera-Verano', 'Otoño-Invierno', 'Perennes']
+
+// VEGETACIÓN: normaliza nombres (sin acentos, minúsculas)
+const normalizar = (texto) =>
+  (texto || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 
 // Mapa pequeño del municipio seleccionado
 function AjustarMapa({ feature }) {
@@ -35,6 +47,9 @@ function Recommendations({ nombre, onBack }) {
   const [feature, setFeature] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(false)
+
+  // VEGETACIÓN: cultivos del municipio (tabla "cultivos")
+  const [cultivos, setCultivos] = useState([])
 
   // Obtener el contorno geográfico del municipio
   useEffect(() => {
@@ -80,6 +95,58 @@ function Recommendations({ nombre, onBack }) {
     }
   }, [nombre])
 
+  // VEGETACIÓN: cargar los cultivos del municipio desde Supabase
+  useEffect(() => {
+    if (!nombre) return
+
+    let activo = true
+
+    async function cargarCultivos() {
+      const { data, error: errorDb } = await supabase
+        .from('cultivos')
+        .select(
+          'id, municipio, estacion, cultivo_recomendado, anios_evaluados, volumen_promedio_ton, rendimiento_prom, valor_promedio_mxn, exito_cosecha_pct'
+        )
+
+      if (!activo) return
+
+      if (errorDb) {
+        console.error('Error leyendo cultivos:', errorDb)
+      }
+
+      setCultivos(
+        (data ?? []).filter(
+          c => normalizar(c.municipio) === normalizar(nombre)
+        )
+      )
+    }
+
+    cargarCultivos()
+
+    return () => {
+      activo = false
+    }
+  }, [nombre])
+
+  // VEGETACIÓN: cultivo recomendado por estación y el de mayor éxito de cosecha
+  const mejorCultivo = cultivos.reduce(
+    (mejor, c) =>
+      !mejor || Number(c.exito_cosecha_pct) > Number(mejor.exito_cosecha_pct)
+        ? c
+        : mejor,
+    null
+  )
+
+  const resumenCultivos = ORDEN_ESTACIONES
+    .map(estacion => {
+      const c = cultivos.find(
+        x => normalizar(x.estacion) === normalizar(estacion)
+      )
+      return c ? `${estacion}: ${c.cultivo_recomendado}` : null
+    })
+    .filter(Boolean)
+    .join(' · ')
+
   // Información demostrativa, pendiente de conectar a datos reales
   const recomendaciones = [
     {
@@ -101,13 +168,17 @@ function Recommendations({ nombre, onBack }) {
       nivel: 'Preventivo'
     },
     {
+      // VEGETACIÓN: ahora usa los datos de la tabla cultivos
       categoria: 'Vegetación',
       icono: '♧',
-      titulo: 'Seguimiento de la cobertura vegetal',
-      descripcion:
-        'Monitorea los cambios en la cobertura vegetal y las condiciones de conservación del territorio.',
+      titulo: 'Cultivos recomendados por estación',
+      descripcion: mejorCultivo
+        ? `${resumenCultivos}. Mayor éxito de cosecha: ${mejorCultivo.cultivo_recomendado} (${mejorCultivo.estacion}) con ${mejorCultivo.exito_cosecha_pct}%.`
+        : 'Aún no hay cultivos cargados para este municipio.',
       tipo: 'Recomendación',
-      nivel: 'Preventivo'
+      nivel: mejorCultivo
+        ? `${mejorCultivo.exito_cosecha_pct}% de éxito`
+        : 'Sin datos'
     }
   ]
 
@@ -255,14 +326,19 @@ function Recommendations({ nombre, onBack }) {
               <span>Pendiente de datos reales</span>
             </article>
 
+            {/* VEGETACIÓN: usa los datos de la tabla cultivos */}
             <article className="condition-card">
               <div className="condition-icon vegetation-icon">♧</div>
               <h3>Vegetación</h3>
               <p>
-                Cobertura vegetal, ecosistemas
-                y distribución de la vegetación.
+                Cultivos recomendados por estación, rendimiento
+                y éxito de cosecha.
               </p>
-              <span>Pendiente de datos reales</span>
+              <span>
+                {mejorCultivo
+                  ? `${cultivos.length} cultivos registrados · mejor: ${mejorCultivo.cultivo_recomendado}`
+                  : 'Pendiente de datos reales'}
+              </span>
             </article>
 
           </div>
