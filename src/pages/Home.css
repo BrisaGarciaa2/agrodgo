@@ -1,13 +1,10 @@
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
 
 * {
   box-sizing: border-box;
 }
 
-html,
-body,
-#root {
+html, body, #root {
   margin: 0;
   min-height: 100%;
   width: 100%;
@@ -22,30 +19,33 @@ body,
   justify-content: space-between;
   overflow: hidden;
   color: #fff;
+  /* Tipografía sans-serif limpia tipo NASA */
   font-family: 'DM Sans', sans-serif;
-
+  
+  /* Paleta verde oscuro de la opción 2 */
   background-image:
     linear-gradient(
-      90deg,
-      rgba(16, 40, 27, 0.88),
-      rgba(23, 48, 32, 0.52),
-      rgba(21, 39, 28, 0.25)
+      180deg,
+      rgba(16, 40, 27, 0.85) 0%,
+      rgba(16, 40, 27, 0.5) 50%,
+      rgba(16, 40, 27, 0.95) 100%
     ),
     url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=2000&q=90');
-
   background-size: cover;
   background-position: center;
 }
 
 /* ENCABEZADO */
-
 .home-top {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 30px 6%;
+  padding: 20px 6%;
+  background: rgba(16, 40, 27, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .home-brand {
@@ -54,141 +54,208 @@ body,
   gap: 12px;
   font-size: 18px;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 1px;
 }
 
 .brand-symbol {
-  width: 39px;
-  height: 39px;
+  width: 35px;
+  height: 35px;
   display: grid;
   place-items: center;
   background: #d7c39b;
   color: #203d2a;
   border-radius: 50%;
-  font-family: 'Playfair Display', serif;
-  font-size: 23px;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .home-location {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #e5dfcf;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #ddcba6;
 }
 
 /* CONTENIDO CENTRAL */
-
 .home-content {
   position: relative;
   z-index: 2;
-  width: min(850px, 88%);
-  margin-left: 10%;
-  padding: 45px 0;
+  width: min(900px, 88%);
+  margin: auto;
+  padding: 40px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .home-eyebrow {
   color: #ddcba6;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 4px;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
 }
 
+/* Título tipo NASA: Sans-serif, sin mayúsculas forzadas, peso alto */
 .home-content h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(65px, 11vw, 125px);
-  line-height: 1;
-  letter-spacing: 5px;
-  margin: 22px 0 15px;
-  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(40px, 6vw, 75px);
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 25px;
+  text-align: center;
+  letter-spacing: -1px;
+  text-transform: none;
 }
 
+/* Ocultamos la línea divisoria para un look más limpio */
 .home-line {
-  width: 85px;
-  height: 3px;
-  background: #c8ad7e;
-  margin: 25px 0;
+  display: none;
 }
 
 .home-content h2 {
-  font-size: clamp(25px, 3vw, 37px);
-  line-height: 1.35;
-  font-weight: 500;
-  margin: 0 0 18px;
+  font-size: clamp(20px, 2.5vw, 26px);
+  line-height: 1.4;
+  font-weight: 400;
+  margin: 0 0 20px;
+  color: #e5dfcf;
+  text-transform: none;
 }
 
 .home-content p {
-  max-width: 560px;
-  font-size: 15px;
-  line-height: 1.9;
-  color: #e6e5dc;
-  margin-bottom: 35px;
+  max-width: 750px;
+  font-size: clamp(16px, 2vw, 18px);
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
-/* BOTÓN */
-
+/* BOTÓN OVALADO (Estilo Píldora) */
 .explore-button {
   display: inline-flex;
   align-items: center;
-  gap: 35px;
-  padding: 17px 24px;
-  background: #d7c39b;
-  color: #203d2a;
+  justify-content: center;
+  gap: 15px; /* Espacio entre el texto y la flecha */
+  padding: 16px 36px; /* El padding horizontal le da la forma ovalada */
+  background: #d7c39b; /* Color beige/dorado */
+  color: #203d2a; /* Color del texto y flecha */
   border: none;
-  border-radius: 5px;
-  font-size: 14px;
+  border-radius: 50px; /* Aquí se hace ovalado */
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: 0.3s ease;
-}
-
-.explore-button span {
-  font-size: 22px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-transform: none;
 }
 
 .explore-button:hover {
   background: #eee2c8;
-  transform: translateY(-3px);
+  transform: translateY(-3px); /* Efecto de salto */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* La flecha dentro del botón */
+.explore-button span {
+  display: inline-block;
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+/* Efecto: la flecha se mueve a la derecha al pasar el mouse */
+.explore-button:hover span {
+  transform: translateX(5px);
+}
+
+/* BARRA DE BÚSQUEDA (Estilo NASA inferior) */
+.search-bar-container {
+  position: relative;
+  z-index: 2;
+  padding: 0 5% 40px 5%;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.search-inner {
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  width: 100%;
+  max-width: 850px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+.search-inner input {
+  flex: 1;
+  padding: 20px 25px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  color: #333;
+}
+
+.search-inner button {
+  background: #203d2a; /* Verde oscuro */
+  color: #fff;
+  border: none;
+  padding: 0 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.search-inner button:hover {
+  background: #15281b;
 }
 
 /* PIE DE PÁGINA */
-
 .home-footer {
   position: relative;
   z-index: 2;
   display: flex;
   justify-content: space-between;
   padding: 22px 6%;
-  border-top: 1px solid rgba(255,255,255,0.25);
-  color: #e2dfd3;
-  font-size: 10px;
-  letter-spacing: 2px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  color: #a0aec0;
+  font-size: 11px;
+  letter-spacing: 1px;
 }
 
 /* RESPONSIVE */
-
-@media (max-width: 650px) {
+@media (max-width: 768px) {
   .home-top {
-    padding: 22px 5%;
+    padding: 15px 5%;
   }
-
-  .home-location {
-    font-size: 9px;
-  }
-
+  
   .home-content {
-    margin: auto;
-    padding: 50px 0;
+    padding: 60px 0 30px 0;
   }
 
   .home-content h1 {
-    letter-spacing: 2px;
+    font-size: clamp(35px, 8vw, 50px);
   }
-
-  .home-content p {
-    font-size: 13px;
+  
+  .search-bar-container {
+    padding: 0 5% 30px 5%;
   }
-
-  .home-footer {
-    gap: 15px;
-    font-size: 8px;
+  
+  .search-inner {
+    flex-direction: column;
+  }
+  
+  .search-inner button {
+    padding: 15px;
+  }
+  
+  .explore-button {
+    padding: 14px 28px;
+    font-size: 15px;
   }
 }

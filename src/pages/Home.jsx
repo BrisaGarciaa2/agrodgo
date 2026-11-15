@@ -40,9 +40,8 @@ function Home({ onExplore }) {
           mediante información geográfica.
         </p>
 
-        <button
-          className="explore-button"
-          onClick={onExplore}
+        <button className="explore-button"
+          onClick={onExplore} 
         >
           Explorar Durango
           <span>→</span>
