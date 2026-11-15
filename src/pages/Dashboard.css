@@ -8,8 +8,8 @@
 
 .dashboard {
   min-height: 100vh;
-  background: #E4E98F;
-  color: #193D2B;
+  background:#193D2B; 
+  color: #dbddc8;
   font-family: 'DM Sans', sans-serif;
 }
 
@@ -20,7 +20,7 @@
 .dash-header {
   min-height: 78px;
   background: #193D2B;
-  color: rgb(179, 212, 178);
+  color: rgb(255, 255, 255);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -47,7 +47,7 @@
 
 .back-button {
   background: #345C43;
-  border: 1px solid #789078;
+  border: 1px solid #ffffff;
   color: white;
   width: 42px;
   height: 42px;
@@ -84,7 +84,7 @@
 
 .dash-intro {
   background: transparent;
-  color: #193D2B;
+  color: #E4E98F;
   border-radius: 0;
   padding: 12px 5px 28px;
   display: flex;
@@ -102,7 +102,7 @@
 
 .dash-label {
   display: inline-block;
-  color: #66804B;
+  color:#E4E98F;
   background: transparent;
   padding: 0;
   border: none;
@@ -114,12 +114,12 @@
 .dash-intro h1 {
   font-size: 35px;
   margin: 12px 0;
-  color: #193D2B;
+  color: #ffffff;
   font-weight: 800;
 }
 
 .dash-intro p {
-  color: #687768;
+  color: #E4E98F;
   font-size: 14px;
   line-height: 1.8;
   max-width: 750px;
@@ -135,7 +135,7 @@
 .intro-features span {
   background: transparent;
   border: none;
-  color: #345C43;
+  color:#E4E98F;
   padding: 0;
   border-radius: 0;
   font-size: 12px;

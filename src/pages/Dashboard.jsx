@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import L from 'leaflet'
 
@@ -152,7 +151,7 @@ function Dashboard({ onSelectMunicipality, onBack }) {
           </button>
 
           <div>
-            <h2>METEDGO</h2>
+            <h2>meteDGO</h2>
             <span>Explorador ambiental de Durango</span>
           </div>
 
@@ -371,10 +370,6 @@ function Dashboard({ onSelectMunicipality, onBack }) {
         </section>
 
       </main>
-
-      <footer className="dash-footer">
-        METEDGO · EXPLORACIÓN AMBIENTAL DE DURANGO
-      </footer>
 
     </div>
   )
