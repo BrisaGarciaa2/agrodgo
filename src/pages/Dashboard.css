@@ -533,3 +533,63 @@
   color: #163A24;
   font-size: 14px;
 }
+
+/* Pega esto al final de tu Dashboard.css.
+   Si ya habías pegado la versión anterior, BORRA la regla
+   ".legend-item .legend-range { ... }" y deja esta versión. */
+
+.legend-item {
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.legend-text strong {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.legend-item .legend-range {
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+
+.muni-rows {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.muni-rows li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.muni-emoji {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.muni-raw {
+  display: block;
+  font-size: 12.5px;
+  opacity: 0.65;
+}
+
+.muni-rank {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #E4EA8C;
+  color: #163A24;
+  font-size: 14px;
+}

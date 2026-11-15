@@ -26,7 +26,7 @@ const capaConfig = {
       'Muestra la temperatura promedio del año. Los tonos azules son zonas más frescas, generalmente en la sierra; los naranjas, zonas más cálidas.',
     categorias: ['Fresco', 'Templado', 'Cálido', 'Muy cálido'],
     cortes: [14, 18, 22],
-    rangos: ['menos de 14 °C', '14 a 18 °C', '18 a 22 °C', 'más de 22 °C'],
+    rangos: ['menos de 14 °C', '14 – 18 °C', '18 – 22 °C', 'más de 22 °C'],
     colores: ['#B9D9E8', '#77B8D1', '#E8C77B', '#D98564'],
     comparativo: 'más cálido',
     frase: (cat, v) => `Clima ${cat.toLowerCase()}: ${Math.round(v)} °C en promedio al año`
@@ -39,7 +39,7 @@ const capaConfig = {
       'Muestra cuánta agua hay en la capa superior de la tierra. Es importante para los cultivos y para saber si ha llovido lo suficiente.',
     categorias: ['Muy seca', 'Seca', 'Húmeda', 'Muy húmeda'],
     cortes: [0.15, 0.25, 0.33],
-    rangos: ['menos de 15 %', '15 a 25 %', '25 a 33 %', 'más de 33 %'],
+    rangos: ['menos de 15 % (0.15)', '15 – 25 % (0.15 – 0.25)', '25 – 33 % (0.25 – 0.33)', 'más de 33 % (0.33)'],
     colores: ['#E4D6B8', '#D8C09A', '#B99469', '#98734F'],
     comparativo: 'más húmedo',
     frase: (cat, v) => `Tierra ${cat.toLowerCase()}: ${Math.round(v * 100)} % de humedad`
@@ -50,13 +50,12 @@ const capaConfig = {
     pregunta: '¿Qué tan verde está?',
     explicacion:
       'Muestra qué tan verde y sana se ve la vegetación desde el espacio. Los tonos más oscuros indican más plantas y bosque; los claros, zonas más secas o con menos vegetación.',
-    categorias: ['Poco verde', 'Medianamente verde', 'Bastante verde', 'Muy verde'],
+    categorias: ['Poca vegetación', 'Algo de vegetación', 'Bastante vegetación', 'Vegetación abundante'],
     cortes: [0.3, 0.5, 0.65],
-    rangos: ['poca vegetación', 'algo de vegetación', 'bastante vegetación', 'vegetación abundante'],
+    rangos: ['menos de 0.30', '0.30 – 0.50', '0.50 – 0.65', 'más de 0.65'],
     colores: ['#D5E2C0', '#A6C18A', '#6D956B', '#3F704C'],
     comparativo: 'más verde',
-    frase: (cat, v, i) =>
-      `${cat}: ${capaConfig.Vegetación.rangos[i]}`
+    frase: (cat) => cat
   }
 }
 
@@ -237,7 +236,12 @@ function Dashboard({ onSelectMunicipality, onBack }) {
         const v = valorEn(municipio, cfg)
         if (v == null) return null
         const i = categoriaDe(cfg, v)
-        return { emoji: cfg.emoji, texto: cfg.frase(cfg.categorias[i], v, i) }
+        const d = datosCapas[municipio]?.[cfg.indicador]
+        return {
+          emoji: cfg.emoji,
+          texto: cfg.frase(cfg.categorias[i], v, i),
+          dato: `${d.valor} ${d.unidad || ''}`.trim()
+        }
       })
       .filter(Boolean)
     : []
@@ -457,10 +461,12 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                 {config.colores.map((color, index) => (
                   <div className="legend-item" key={color}>
                     <span style={{ background: color }}></span>
-                    {config.categorias[index]}
-                    <small className="legend-range">
-                      {config.rangos[index]}
-                    </small>
+                    <div className="legend-text">
+                      <strong>{config.categorias[index]}</strong>
+                      <small className="legend-range">
+                        {config.rangos[index]}
+                      </small>
+                    </div>
                   </div>
                 ))}
 
@@ -484,7 +490,10 @@ function Dashboard({ onSelectMunicipality, onBack }) {
                         {filasMunicipio.map(f => (
                           <li key={f.texto}>
                             <span className="muni-emoji">{f.emoji}</span>
-                            {f.texto}
+                            <div>
+                              {f.texto}
+                              <small className="muni-raw">Dato: {f.dato}</small>
+                            </div>
                           </li>
                         ))}
                       </ul>
