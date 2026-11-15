@@ -1,0 +1,355 @@
+
+.municipality-page {
+  min-height: 100vh;
+  background: #f2f0e7;
+  color: #293e2d;
+  font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.municipality-header {
+  min-height: 75px;
+  background: #193d2b;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+  gap: 20px;
+}
+
+.municipality-back {
+  background: transparent;
+  border: 1px solid #b4c0ae;
+  color: white;
+  border-radius: 6px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.municipality-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.municipality-brand span {
+  width: 35px;
+  height: 35px;
+  background: #d7c39b;
+  color: #193d2b;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.municipality-location {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #dfd7c2;
+}
+
+.municipality-content {
+  max-width: 1400px;
+  margin: auto;
+  padding: 40px 5%;
+}
+
+.municipality-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.municipality-eyebrow {
+  font-size: 10px;
+  color: #8b7856;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.municipality-heading h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 42px;
+  margin: 12px 0;
+  color: #244b34;
+}
+
+.municipality-heading p {
+  color: #808477;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.municipality-map {
+  width: 300px;
+  height: 190px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e2e9db;
+}
+
+.small-municipality-map {
+  width: 100%;
+  height: 100%;
+}
+
+.municipality-map-message {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 15px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.municipality-overview {
+  background: #244b34;
+  color: white;
+  border-radius: 12px;
+  padding: 25px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.municipality-overview span {
+  font-size: 11px;
+  color: #d1d9c6;
+}
+
+.municipality-overview h2 {
+  font-size: 22px;
+  margin: 8px 0 0;
+}
+
+.overview-status {
+  text-align: right;
+}
+
+.overview-status strong {
+  display: block;
+  color: #d8c49a;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.environment-heading h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 28px;
+  margin: 10px 0;
+}
+
+.environment-heading p {
+  color: #828578;
+  font-size: 13px;
+}
+
+.environment-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 25px 0 18px;
+}
+
+.environment-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #dedfd3;
+  border-radius: 8px;
+  padding: 13px 24px;
+  color: #54654e;
+  font-size: 13px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.environment-tab span {
+  font-size: 19px;
+}
+
+.environment-tab:hover {
+  border-color: #78916f;
+}
+
+.environment-tab.selected {
+  background: #244b34;
+  color: white;
+  border-color: #244b34;
+}
+
+.environment-card {
+  background: white;
+  border: 1px solid #e3e4d9;
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.environment-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.environment-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #304b35;
+  font-size: 24px;
+}
+
+.environment-card-heading h3 {
+  margin: 0 0 7px;
+  font-size: 18px;
+}
+
+.environment-card-heading p {
+  color: #85897d;
+  font-size: 12px;
+  margin: 0;
+}
+
+.environment-data {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.environment-data-item {
+  background: #f5f5ef;
+  border: 1px solid #e8e9df;
+  border-radius: 9px;
+  padding: 18px;
+}
+
+.environment-data-item span {
+  display: block;
+  font-size: 11px;
+  color: #828779;
+  margin-bottom: 12px;
+}
+
+.environment-data-item strong {
+  font-size: 14px;
+  color: #38563d;
+}
+
+.environment-notice {
+  margin-top: 22px;
+  padding: 14px;
+  background: #f0eadb;
+  color: #806b47;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.municipality-next {
+  margin-top: 35px;
+  background: #e5e8dc;
+  border-radius: 12px;
+  padding: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+}
+
+.municipality-next span {
+  color: #8b7856;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.municipality-next h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px;
+  margin: 10px 0;
+}
+
+.municipality-next p {
+  color: #758071;
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 600px;
+}
+
+.municipality-next button {
+  background: #244b34;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 15px 20px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.municipality-next button:hover {
+  background: #356846;
+}
+
+.municipality-footer {
+  padding: 25px;
+  text-align: center;
+  color: #858a7c;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 750px) {
+  .municipality-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .municipality-map {
+    width: 100%;
+  }
+
+  .environment-data {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .municipality-next {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .municipality-location {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .municipality-content {
+    padding: 25px 4%;
+  }
+
+  .municipality-overview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .overview-status {
+    text-align: left;
+  }
+
+  .environment-data {
+    grid-template-columns: 1fr;
+  }
+}
