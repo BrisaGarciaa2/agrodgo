@@ -39,8 +39,8 @@ function Home({ onExplore }) {
 
       <header className="home-top">
         <div className="home-brand">
-          <span className="brand-symbol">M</span>
-          <span>meteDGO</span>
+          <span className="brand-symbol">A</span>
+          <span>agroDGO</span>
         </div>
 
         <span className="home-location">
@@ -54,7 +54,7 @@ function Home({ onExplore }) {
           EXPLORACIÓN TERRITORIAL Y AMBIENTAL
         </span>
 
-        <h1>meteDGO</h1>
+        <h1>agroDGO</h1>
 
         <div className="home-line"></div>
 

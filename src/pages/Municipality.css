@@ -18,8 +18,8 @@
 
 .municipality-header {
   min-height: 78px;
-  background: #193D2B;
-  color: white;
+  background: #EDEEE2;
+  color: #193D2B;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -78,7 +78,7 @@
 .municipality-location {
   font-size: 11px;
   letter-spacing: 2px;
-  color: #E4E98F;
+  color:#193D2B;
   font-weight: 700;
 }
 

@@ -459,8 +459,8 @@ function Municipality({ nombre, onBack, onRecommendations }) {
         </button>
 
         <div className="municipality-brand">
-          <span>M</span>
-          METEDGO
+          <span>A</span>
+          agroDGO
         </div>
 
         <div className="municipality-location">
@@ -659,7 +659,7 @@ function Municipality({ nombre, onBack, onRecommendations }) {
                     ? 'Consultando la base de datos...'
                     : 'Este municipio todavía no tiene cultivos cargados.'
                 : fila
-                  ? `Fuente: ${fila.fuente ?? 'INEGI'}. Se muestra el elemento que predomina en el municipio.`
+                  ? `Fuente: NASA e INEGI. Se muestra el elemento que predomina en el municipio.`
                   : cargandoDatos
                     ? 'Consultando la base de datos...'
                     : 'Este municipio todavía no tiene datos ambientales cargados.'}
